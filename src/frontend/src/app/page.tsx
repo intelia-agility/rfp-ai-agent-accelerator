@@ -3,11 +3,21 @@
 import { useState } from "react";
 import Image from "next/image";
 
+// Helper to get API URL
+const getApiUrl = () => {
+  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+};
+
 export default function Home() {
   const [isDragging, setIsDragging] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [companyUrl, setCompanyUrl] = useState("https://www.intelia.com.au/");
+
   const [analyzing, setAnalyzing] = useState(false);
+  const [drafting, setDrafting] = useState(false);
+
   const [result, setResult] = useState<any>(null);
+  const [draftResult, setDraftResult] = useState<string>("");
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -36,25 +46,68 @@ export default function Home() {
     if (!file) return;
 
     setAnalyzing(true);
-    // Simulate API call delay for "AI Processing" effect
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    setResult(null);
+    setDraftResult("");
 
-    // Mock result matching backend structure
-    const mockResult = {
-      score: 88,
-      recommendation: "Pursue",
-      criteria_scores: {
-        strategy: 90,
-        offerings: 95,
-        resources: 80,
-        risks: 85,
-      },
-      reasoning:
-        "Strong alignment with core offerings. Compliance risks are manageable. The project timeline is tight but feasible with current resource allocation.",
-    };
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
 
-    setResult(mockResult);
-    setAnalyzing(false);
+      const response = await fetch(`${getApiUrl()}/assess`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Assessment failed");
+      }
+
+      const data = await response.json();
+      setResult(data);
+    } catch (error) {
+      console.error("Error assessing RFP:", error);
+      alert("Error assessing RFP. Please check backend connection.");
+    } finally {
+      setAnalyzing(false);
+    }
+  };
+
+  const handleDraft = async () => {
+    if (!file) return;
+
+    setDrafting(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("company_url", companyUrl);
+
+      const response = await fetch(`${getApiUrl()}/draft`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Drafting failed");
+      }
+
+      // Handle file download
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `Draft_${file.name}`; // Or use filename from header if available
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      setDraftResult("Draft document downloaded successfully!");
+    } catch (error) {
+      console.error("Error drafting response:", error);
+      alert("Error generating draft.");
+    } finally {
+      setDrafting(false);
+    }
   };
 
   return (
@@ -119,9 +172,9 @@ export default function Home() {
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`relative flex min-h-[300px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-all duration-200 ${isDragging
-                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                    : "border-slate-300 hover:border-slate-400 dark:border-slate-700 dark:hover:border-slate-600"
+                className={`relative flex min-h-[240px] cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed transition-all duration-200 ${isDragging
+                  ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                  : "border-slate-300 hover:border-slate-400 dark:border-slate-700 dark:hover:border-slate-600"
                   }`}
               >
                 <input
@@ -167,13 +220,25 @@ export default function Home() {
                 </div>
               </div>
 
+              {/* Company URL Input */}
+              <div className="mt-6">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Company Knowledge Base URL</label>
+                <input
+                  type="url"
+                  value={companyUrl}
+                  onChange={(e) => setCompanyUrl(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-slate-900 focus:border-blue-500 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-blue-500"
+                  placeholder="https://www.company.com"
+                />
+              </div>
+
               <div className="mt-6">
                 <button
                   onClick={handleAssess}
                   disabled={!file || analyzing}
                   className={`w-full rounded-xl py-4 text-base font-bold shadow-lg transition-all duration-200 ${!file
-                      ? "bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-800 dark:text-slate-600"
-                      : "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-blue-500/25 active:scale-[0.98]"
+                    ? "bg-slate-200 text-slate-400 cursor-not-allowed dark:bg-slate-800 dark:text-slate-600"
+                    : "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-blue-500/25 active:scale-[0.98]"
                     }`}
                 >
                   {analyzing ? (
@@ -248,17 +313,17 @@ export default function Home() {
                   </div>
 
                   {/* Criteria Progress Bars */}
-                  <div className="space-y-4">
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-500">Criteria Breakdown</h3>
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Criteria</h3>
                     {Object.entries(result.criteria_scores).map(([key, score]: [string, any]) => (
                       <div key={key} className="group">
-                        <div className="mb-1 flex justify-between text-sm">
+                        <div className="flex justify-between text-xs mb-1">
                           <span className="capitalize font-medium text-slate-700 dark:text-slate-200">{key}</span>
                           <span className="font-bold text-slate-900 dark:text-white">{score}%</span>
                         </div>
-                        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
                           <div
-                            className="h-full bg-blue-600 transition-all duration-1000 ease-out"
+                            className="h-full bg-blue-600"
                             style={{ width: `${score}%` }}
                           />
                         </div>
@@ -267,21 +332,30 @@ export default function Home() {
                   </div>
 
                   {/* Reasoning */}
-                  <div className="rounded-2xl border border-blue-100 bg-blue-50 p-6 dark:border-blue-900/30 dark:bg-blue-900/20">
-                    <h3 className="mb-2 font-semibold text-blue-900 dark:text-blue-100">AI Reasoning</h3>
+                  <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 dark:border-blue-900/30 dark:bg-blue-900/20">
+                    <h3 className="mb-1 text-sm font-semibold text-blue-900 dark:text-blue-100">Analysis</h3>
                     <p className="text-sm leading-relaxed text-blue-800 dark:text-blue-200">
                       {result.reasoning}
                     </p>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="grid grid-cols-2 gap-4 pt-4">
-                    <button className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10">
-                      Generate Questions
+                  <div className="flex flex-col gap-3 pt-2">
+                    <button
+                      onClick={handleDraft}
+                      disabled={drafting}
+                      className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 py-3 text-sm font-semibold text-white shadow-lg hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
+                    >
+                      {drafting ? "Generating Draft..." : "Draft Response"}
                     </button>
-                    <button className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 py-3 text-sm font-semibold text-white shadow-lg hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100">
-                      Draft Response
-                    </button>
+
+                    {draftResult && (
+                      <div className="mt-4 p-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm font-mono whitespace-pre-wrap max-h-60 overflow-y-auto border border-slate-200 dark:border-slate-700">
+                        <strong>Draft Preview:</strong>
+                        <br />
+                        {draftResult}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

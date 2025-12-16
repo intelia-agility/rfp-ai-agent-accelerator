@@ -42,9 +42,11 @@ cd ../frontend
 
 Write-Host "Deploying Frontend..."
 # Create env vars for build/runtime
-# gcloud run deploy typically builds in the cloud. We need to pass build-args.
+# Write .env.production for the build process to pick up NEXT_PUBLIC_API_URL
+Set-Content -Path ".env.production" -Value "NEXT_PUBLIC_API_URL=$BACKEND_URL"
 
 gcloud run deploy $FRONTEND_SERVICE_NAME --source . --allow-unauthenticated --region $REGION --set-env-vars NEXT_PUBLIC_API_URL=$BACKEND_URL
+
 
 if ($LASTEXITCODE -ne 0) { 
     Write-Error "Frontend deployment failed."
