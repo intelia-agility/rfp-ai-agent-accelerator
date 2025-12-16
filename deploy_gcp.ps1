@@ -2,9 +2,9 @@
 # Deployment Script for RFP AI Agent Accelerator
 # Requirements: Google Cloud SDK (gcloud) installed and authenticated.
 
-$REGION="us-central1"
-$BACKEND_SERVICE_NAME="rfp-backend"
-$FRONTEND_SERVICE_NAME="rfp-frontend"
+$REGION = "australia-southeast2"
+$BACKEND_SERVICE_NAME = "rfp-backend"
+$FRONTEND_SERVICE_NAME = "rfp-frontend"
 
 Write-Host "Checking for gcloud CLI..."
 if (-not (Get-Command gcloud -ErrorAction SilentlyContinue)) {
