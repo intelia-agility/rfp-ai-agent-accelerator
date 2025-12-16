@@ -2,6 +2,8 @@
 # Deployment Script for RFP AI Agent Accelerator
 # Requirements: Google Cloud SDK (gcloud) installed and authenticated.
 
+$ErrorActionPreference = "Stop"
+
 $REGION = "australia-southeast2"
 $BACKEND_SERVICE_NAME = "rfp-backend"
 $FRONTEND_SERVICE_NAME = "rfp-frontend"
@@ -18,7 +20,8 @@ gcloud services enable run.googleapis.com artifactregistry.googleapis.com cloudb
 Write-Host "Deploying Backend..."
 cd src/backend
 # Deploy source directly (Cloud Build will build the Dockerfile)
-gcloud run deploy $BACKEND_SERVICE_NAME --source . --allow-unauthenticated --region $REGION --format="value(status.url)" > backend_url.txt
+# Added --memory 2Gi to prevent build/runtime memory issues
+gcloud run deploy $BACKEND_SERVICE_NAME --source . --allow-unauthenticated --region $REGION --memory 2Gi --format="value(status.url)" > backend_url.txt
 
 $BACKEND_URL = Get-Content backend_url.txt
 Write-Host "Backend deployed at: $BACKEND_URL"
