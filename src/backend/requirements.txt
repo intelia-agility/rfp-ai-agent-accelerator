@@ -10,3 +10,5 @@ python-docx
 Office365-REST-Python-Client
 pydantic
 python-dotenv
+beautifulsoup4
+requests
