@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+google-cloud-aiplatform
+langchain
+langchain-google-vertexai
+python-multipart
+pandas
+openpyxl
+python-docx
+Office365-REST-Python-Client
+pydantic
+python-dotenv
