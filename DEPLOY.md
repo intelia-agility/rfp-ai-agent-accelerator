@@ -23,7 +23,7 @@ We will deploy two Cloud Run services:
 
 2.  Deploy to Cloud Run:
     ```bash
-    gcloud run deploy rfp-backend --source . --allow-unauthenticated --region us-central1
+    gcloud run deploy rfp-backend --source . --allow-unauthenticated --region australia-southeast2
     ```
     *Note: Replace `us-central1` with your preferred region.*
     *Note: We use `--allow-unauthenticated` for demo purposes. Secure it as needed.*
