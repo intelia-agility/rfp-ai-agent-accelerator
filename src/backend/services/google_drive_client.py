@@ -332,6 +332,10 @@ class GoogleDriveClient:
                 'parents': [folder_id]
             }
             
+            # Convert DOCX to Google Doc to avoid storage quota issues for Service Accounts
+            if filename.endswith('.docx'):
+                file_metadata['mimeType'] = 'application/vnd.google-apps.document'
+            
             media = MediaFileUpload(file_path, mimetype=mime_type, resumable=True)
             
             file = self.service.files().create(
