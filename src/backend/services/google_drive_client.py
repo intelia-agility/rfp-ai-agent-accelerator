@@ -24,7 +24,7 @@ class GoogleDriveClient:
         # Folder IDs - will be dynamically found or can be set via environment variables
         self.source_folder_id = os.environ.get('GOOGLE_DRIVE_SOURCE_FOLDER_ID')  # Source Information folder
         self.output_folder_id = os.environ.get('GOOGLE_DRIVE_OUTPUT_FOLDER_ID')  # RFP Output folder
-        self.parent_folder_name = "RFP Accelerator Artefacts"
+        self.parent_folder_name = "RFP AI Agent"
         self.source_folder_name = "Source Information"
         self.output_folder_name = "RFP Output"
         
@@ -84,10 +84,11 @@ class GoogleDriveClient:
             return
             
         try:
-            parent_id = os.environ.get('GOOGLE_DRIVE_PARENT_FOLDER_ID')
+            # Default to the provided shared folder ID if environment variable is not set
+            parent_id = os.environ.get('GOOGLE_DRIVE_PARENT_FOLDER_ID', '0AJriKoRrgD4nUk9PVA')
             
             if not parent_id:
-                # Find the parent folder "RFP Accelerator Artefacts" by name
+                # Find the parent folder "RFP AI Agent" by name
                 parent_folder = self._find_folder_by_name(self.parent_folder_name)
                 if not parent_folder:
                     logger.warning(f"Parent folder '{self.parent_folder_name}' not found")
