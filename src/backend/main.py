@@ -63,6 +63,13 @@ def health_check():
     """Health check endpoint for Cloud Run"""
     return {"status": "healthy", "service": "rfp-backend"}
 
+@app.get("/debug-drive")
+def debug_drive():
+    """Debug endpoint to check Google Drive status"""
+    if drive_client:
+        return drive_client.get_config_status()
+    return {"status": "Drive client not initialized", "available": DRIVE_AVAILABLE}
+
 @app.post("/assess")
 async def assess_rfp(file: UploadFile = File(...)):
     try:

@@ -65,7 +65,8 @@ class GoogleDriveClient:
                 )
             
             self.service = build('drive', 'v3', credentials=credentials)
-            logger.info("Google Drive client initialized successfully")
+            self.service_account_email = credentials.service_account_email
+            logger.info(f"Google Drive client initialized successfully for {self.service_account_email}")
             
             # Auto-discover folder IDs if not set
             if not self.source_folder_id or not self.output_folder_id:
@@ -74,6 +75,18 @@ class GoogleDriveClient:
         except Exception as e:
             logger.warning(f"Google Drive client not available: {e}")
             self.service = None
+            self.service_account_email = None
+
+    def get_config_status(self):
+        """Returns the current configuration status for debugging."""
+        return {
+            "available": GOOGLE_DRIVE_AVAILABLE,
+            "initialized": self.service is not None,
+            "service_account_email": self.service_account_email,
+            "parent_folder_name": self.parent_folder_name,
+            "source_folder_id": self.source_folder_id,
+            "output_folder_id": self.output_folder_id,
+        }
 
     def _discover_folders(self):
         """
