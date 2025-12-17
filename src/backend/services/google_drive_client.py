@@ -21,7 +21,12 @@ class GoogleDriveClient:
         Expects GOOGLE_APPLICATION_CREDENTIALS environment variable to be set.
         """
         self.service = None
-        self.folder_id = "1yWaMl4qXUnXHp5m15lL8JChBNKgEZoe4"  # Your RFP folder (read/write)
+        # Folder IDs - will be dynamically found or can be set via environment variables
+        self.source_folder_id = os.environ.get('GOOGLE_DRIVE_SOURCE_FOLDER_ID')  # Source Information folder
+        self.output_folder_id = os.environ.get('GOOGLE_DRIVE_OUTPUT_FOLDER_ID')  # RFP Output folder
+        self.parent_folder_name = "RFP Accelerator Artefacts"
+        self.source_folder_name = "Source Information"
+        self.output_folder_name = "RFP Output"
         
         if not GOOGLE_DRIVE_AVAILABLE:
             logger.info("Google Drive libraries not available - integration disabled")
@@ -61,9 +66,80 @@ class GoogleDriveClient:
             
             self.service = build('drive', 'v3', credentials=credentials)
             logger.info("Google Drive client initialized successfully")
+            
+            # Auto-discover folder IDs if not set
+            if not self.source_folder_id or not self.output_folder_id:
+                self._discover_folders()
+                
         except Exception as e:
             logger.warning(f"Google Drive client not available: {e}")
             self.service = None
+
+    def _discover_folders(self):
+        """
+        Automatically discover the Source Information and RFP Output folder IDs
+        by searching for them under the parent folder.
+        """
+        if not self.service:
+            return
+            
+        try:
+            # First, find the parent folder "RFP Accelerator Artefacts"
+            parent_folder = self._find_folder_by_name(self.parent_folder_name)
+            if not parent_folder:
+                logger.warning(f"Parent folder '{self.parent_folder_name}' not found")
+                return
+            
+            parent_id = parent_folder['id']
+            logger.info(f"Found parent folder: {self.parent_folder_name} (ID: {parent_id})")
+            
+            # Find Source Information folder
+            if not self.source_folder_id:
+                source_folder = self._find_folder_by_name(self.source_folder_name, parent_id)
+                if source_folder:
+                    self.source_folder_id = source_folder['id']
+                    logger.info(f"Found source folder: {self.source_folder_name} (ID: {self.source_folder_id})")
+                else:
+                    logger.warning(f"Source folder '{self.source_folder_name}' not found in parent")
+            
+            # Find RFP Output folder
+            if not self.output_folder_id:
+                output_folder = self._find_folder_by_name(self.output_folder_name, parent_id)
+                if output_folder:
+                    self.output_folder_id = output_folder['id']
+                    logger.info(f"Found output folder: {self.output_folder_name} (ID: {self.output_folder_id})")
+                else:
+                    logger.warning(f"Output folder '{self.output_folder_name}' not found in parent")
+                    
+        except Exception as e:
+            logger.error(f"Error discovering folders: {e}")
+
+    def _find_folder_by_name(self, folder_name: str, parent_id: str = None):
+        """
+        Find a folder by name, optionally within a specific parent folder.
+        Returns the first matching folder or None.
+        """
+        if not self.service:
+            return None
+            
+        try:
+            query = f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
+            if parent_id:
+                query += f" and '{parent_id}' in parents"
+            
+            results = self.service.files().list(
+                q=query,
+                pageSize=10,
+                fields="files(id, name)"
+            ).execute()
+            
+            files = results.get('files', [])
+            return files[0] if files else None
+            
+        except Exception as e:
+            logger.error(f"Error finding folder '{folder_name}': {e}")
+            return None
+
 
     def list_files_in_folder(self, folder_id=None):
         """
@@ -160,10 +236,14 @@ class GoogleDriveClient:
 
     def get_all_rfp_documents(self):
         """
-        Get all RFP documents from the folder as a knowledge base.
+        Get all supporting documents from the Source Information folder.
         Returns a list of dicts with file metadata and content.
         """
-        files = self.list_files_in_folder()
+        if not self.source_folder_id:
+            logger.warning("Source folder ID not set - cannot retrieve documents")
+            return []
+            
+        files = self.list_files_in_folder(self.source_folder_id)
         documents = []
         
         for file in files:
@@ -171,7 +251,8 @@ class GoogleDriveClient:
             if file['mimeType'] in [
                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                 'text/plain',
-                'application/vnd.google-apps.document'
+                'application/vnd.google-apps.document',
+                'application/pdf'
             ]:
                 content = self.get_file_content_as_text(file['id'])
                 if content:
@@ -181,20 +262,27 @@ class GoogleDriveClient:
                         'content': content,
                         'modified': file.get('modifiedTime', '')
                     })
+                    logger.info(f"Loaded source document: {file['name']}")
         
+        logger.info(f"Retrieved {len(documents)} source documents from '{self.source_folder_name}' folder")
         return documents
 
     def upload_file(self, file_path, filename=None, folder_id=None):
         """
-        Upload a file to Google Drive.
+        Upload a file to Google Drive RFP Output folder.
         Returns the file ID if successful, None otherwise.
         """
         if not self.service:
             logger.warning("Google Drive service not initialized")
             return None
         
+        # Use output folder by default
         if not folder_id:
-            folder_id = self.folder_id
+            folder_id = self.output_folder_id
+            
+        if not folder_id:
+            logger.error("No output folder ID available for upload")
+            return None
         
         if not filename:
             filename = os.path.basename(file_path)
@@ -227,7 +315,8 @@ class GoogleDriveClient:
                 fields='id, name, webViewLink'
             ).execute()
             
-            logger.info(f"File uploaded successfully: {file.get('name')} (ID: {file.get('id')})")
+            logger.info(f"File uploaded successfully to '{self.output_folder_name}' folder: {file.get('name')} (ID: {file.get('id')})")
+            logger.info(f"View file at: {file.get('webViewLink')}")
             return file.get('id')
             
         except Exception as e:
