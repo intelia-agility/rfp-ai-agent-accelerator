@@ -126,15 +126,38 @@ async def draft_response(
         if not final_doc_path:
             raise HTTPException(status_code=500, detail="Failed to generate draft document. Ensure file is a valid .docx")
         
-        # 5. Return File directly (Download) settings
+        # 5. Upload to Google Drive and Return Link
+        drive_response = None
+        if drive_client and DRIVE_AVAILABLE:
+            try:
+                drive_response = drive_client.upload_file(final_doc_path, filename=output_filename)
+                print(f"Uploaded to Drive: {drive_response}")
+            except Exception as e:
+                print(f"Failed to upload to drive: {e}")
+        
         # Add cleanup to background tasks
         background_tasks.add_task(cleanup_files, [input_path, final_doc_path])
         
-        return FileResponse(
-            path=final_doc_path, 
-            filename=output_filename, 
-            media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
-        )
+        if drive_response:
+            return {
+                "message": "Draft generated and uploaded to Google Drive successfully",
+                "file_id": drive_response.get('id'),
+                "drive_url": drive_response.get('url'),
+                "filename": drive_response.get('name')
+            }
+        else:
+            # Fallback if drive upload fails (or not configured), but user asked to write to drive.
+            # We return a JSON indicating failure to upload but offering download if we want?
+            # Or just return the file as before? The user explicitly wants to write to drive.
+            # Let's try to return JSON with an error or fallback message, OR just return the file as download if drive fails.
+            # But the frontend needs to handle one or the other.
+            # Let's standardise on JSON to avoid frontend complexity of handling mixed types.
+            return {
+                "message": "Draft generated but Google Drive upload failed or is not configured.",
+                "drive_url": None,
+                "filename": output_filename,
+                "error": "Drive upload failed"
+            }
 
     except HTTPException as he:
         raise he

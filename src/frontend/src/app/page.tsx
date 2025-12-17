@@ -72,10 +72,15 @@ export default function Home() {
     }
   };
 
+  const [draftUrl, setDraftUrl] = useState<string | null>(null);
+
   const handleDraft = async () => {
     if (!file) return;
 
     setDrafting(true);
+    setDraftUrl(null);
+    setDraftResult("");
+
     try {
       const formData = new FormData();
       formData.append("file", file);
@@ -91,18 +96,15 @@ export default function Home() {
         throw new Error(errorData.detail || "Drafting failed");
       }
 
-      // Handle File Download
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Draft_${file.name.replace(/\.[^/.]+$/, "")}.docx`; // Default name
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      // Handle JSON Response (Google Drive Link)
+      const data = await response.json();
 
-      setDraftResult("Draft downloaded successfully to your local machine.");
+      if (data.drive_url) {
+        setDraftUrl(data.drive_url);
+        setDraftResult(data.message || "Draft saved to Google Drive successfully.");
+      } else {
+        setDraftResult(data.message || "Draft generated but could not be uploaded to Drive.");
+      }
 
     } catch (error: any) {
       console.error("Error drafting response:", error);
@@ -352,10 +354,22 @@ export default function Home() {
                     </button>
 
                     {draftResult && (
-                      <div className="mt-4 p-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm font-mono whitespace-pre-wrap max-h-60 overflow-y-auto border border-slate-200 dark:border-slate-700">
-                        <strong>Draft Preview:</strong>
-                        <br />
-                        {draftResult}
+                      <div className="mt-4 p-4 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                        <p className="text-sm font-medium mb-3">{draftResult}</p>
+
+                        {draftUrl && (
+                          <a
+                            href={draftUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            Open in Google Drive
+                          </a>
+                        )}
                       </div>
                     )}
                   </div>
