@@ -87,7 +87,8 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        throw new Error("Drafting failed");
+        const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+        throw new Error(errorData.detail || "Drafting failed");
       }
 
       const data = await response.json();
@@ -99,9 +100,9 @@ export default function Home() {
       } else {
         setDraftResult("Draft generated but no Drive link returned.");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error drafting response:", error);
-      alert("Error generating draft.");
+      alert(`Error: ${error.message}`);
     } finally {
       setDrafting(false);
     }
