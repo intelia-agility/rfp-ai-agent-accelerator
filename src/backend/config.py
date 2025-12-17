@@ -9,7 +9,7 @@ class Settings:
     
     # GCP
     GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID")
-    GCP_LOCATION = os.getenv("GCP_LOCATION", "us-central1")
+    GCP_LOCATION = os.getenv("GCP_LOCATION", "australia-southeast2")
     
     # SharePoint
     SHAREPOINT_URL = os.getenv("SHAREPOINT_URL")

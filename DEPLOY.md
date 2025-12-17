@@ -25,7 +25,7 @@ We will deploy two Cloud Run services:
     ```bash
     gcloud run deploy rfp-backend --source . --allow-unauthenticated --region australia-southeast2
     ```
-    *Note: Replace `us-central1` with your preferred region.*
+    *Note: Replace `australia-southeast2` with your preferred region.*
     *Note: We use `--allow-unauthenticated` for demo purposes. Secure it as needed.*
 
 3.  **Copy the Backend URL**. You will need this for the frontend configuration.
@@ -49,7 +49,7 @@ We will deploy two Cloud Run services:
 
 3.  Deploy to Cloud Run:
     ```bash
-    gcloud run deploy rfp-frontend --source . --allow-unauthenticated --region us-central1
+    gcloud run deploy rfp-frontend --source . --allow-unauthenticated --region australia-southeast2
     ```
 
 4.  **Access the App**: Click the URL provided by the deployment command (e.g., `https://rfp-frontend-xyz.a.run.app`).

@@ -8,7 +8,7 @@ set -e  # Exit on error
 # Configuration
 PROJECT_ID="${GCP_PROJECT_ID}"
 SERVICE_NAME="rfp-backend"
-REGION="${GCP_LOCATION:-us-central1}"
+REGION="${GCP_LOCATION:-australia-southeast2}"
 IMAGE_NAME="gcr.io/${PROJECT_ID}/${SERVICE_NAME}"
 
 # Colors for output

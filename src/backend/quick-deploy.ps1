@@ -2,7 +2,7 @@
 
 # Set your project ID first
 $env:GCP_PROJECT_ID = "your-project-id-here"
-$env:GCP_LOCATION = "us-central1"
+$env:GCP_LOCATION = "australia-southeast2"
 
 # Quick deploy (builds from source)
 gcloud run deploy rfp-backend `
@@ -23,7 +23,7 @@ $SERVICE_URL = gcloud run services describe rfp-backend --region $env:GCP_LOCATI
 Write-Host "Service URL: $SERVICE_URL"
 
 # Test health endpoint
-curl "$SERVICE_URL/health"
+Invoke-WebRequest -Uri "$SERVICE_URL/health"
 
 # View logs
 gcloud run services logs read rfp-backend --region $env:GCP_LOCATION --limit 50

@@ -40,7 +40,7 @@ The Cloud Run deployment was failing with the error:
 1. **GCP Project Setup**:
    ```bash
    export GCP_PROJECT_ID="your-project-id"
-   export GCP_LOCATION="us-central1"  # or your preferred region
+   export GCP_LOCATION="australia-southeast2"  # or your preferred region
    ```
 
 2. **Enable Required APIs**:
@@ -121,7 +121,7 @@ The following environment variables are required:
 | Variable | Description | Required | Default |
 |----------|-------------|----------|---------|
 | `GCP_PROJECT_ID` | Your GCP Project ID | Yes | - |
-| `GCP_LOCATION` | GCP region for Vertex AI | No | us-central1 |
+| `GCP_LOCATION` | GCP region for Vertex AI | No | australia-southeast2 |
 | `GOOGLE_APPLICATION_CREDENTIALS` | Path or JSON content of service account key | No (uses default) | - |
 | `PORT` | Port for the service to listen on | No | 8080 |
 

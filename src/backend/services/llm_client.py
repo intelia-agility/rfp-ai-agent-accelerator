@@ -12,7 +12,7 @@ class LLMClient:
         try:
             # Get GCP configuration from environment
             project_id = os.getenv("GCP_PROJECT_ID")
-            location = os.getenv("GCP_LOCATION", "us-central1")
+            location = os.getenv("GCP_LOCATION", "australia-southeast2")
             
             if not project_id:
                 logger.warning("GCP_PROJECT_ID not set - LLM client may not work properly")
