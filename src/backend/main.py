@@ -111,27 +111,27 @@ async def draft_response(
         final_doc_path = drafter.generate_draft_document(draft_text, input_path, output_path, company_url=company_url)
         
         # 5. Upload to Google Drive
-        drive_file_id = None
+        drive_response = None
         if drive_client and final_doc_path and os.path.exists(final_doc_path):
-            drive_file_id = drive_client.upload_file(final_doc_path, output_filename)
+            drive_response = drive_client.upload_file(final_doc_path, output_filename)
         
-        # Cleanup input
+        # Cleanup
         if os.path.exists(input_path):
             os.remove(input_path)
-
         if final_doc_path and os.path.exists(final_doc_path):
-            # Return file with info about Drive upload
-            response = FileResponse(
-                final_doc_path, 
-                media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
-                filename=output_filename
-            )
-            if drive_file_id:
-                response.headers["X-Drive-File-ID"] = drive_file_id
-                response.headers["X-Drive-Upload-Status"] = "success"
-            return response
+            os.remove(final_doc_path) # Remove local copy after upload
+
+        if drive_response:
+            return {
+                "status": "success",
+                "message": "Draft generated and saved to Google Drive",
+                "file_id": drive_response.get('id'),
+                "file_url": drive_response.get('url'),
+                "file_name": drive_response.get('name')
+            }
         else:
-            raise HTTPException(status_code=500, detail="Failed to generate document")
+            # Fallback if drive upload failed or not configured (though requirement implies it should be)
+            raise HTTPException(status_code=500, detail="Failed to upload document to Google Drive")
 
     except Exception as e:
         # Cleanup on error

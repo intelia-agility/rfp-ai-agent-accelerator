@@ -317,7 +317,11 @@ class GoogleDriveClient:
             
             logger.info(f"File uploaded successfully to '{self.output_folder_name}' folder: {file.get('name')} (ID: {file.get('id')})")
             logger.info(f"View file at: {file.get('webViewLink')}")
-            return file.get('id')
+            return {
+                'id': file.get('id'),
+                'url': file.get('webViewLink'),
+                'name': file.get('name')
+            }
             
         except Exception as e:
             logger.error(f"Error uploading file to Google Drive: {e}")

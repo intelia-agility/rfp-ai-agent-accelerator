@@ -90,18 +90,15 @@ export default function Home() {
         throw new Error("Drafting failed");
       }
 
-      // Handle file download
-      const blob = await response.blob();
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      link.download = `Draft_${file.name}`; // Or use filename from header if available
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(downloadUrl);
+      const data = await response.json();
 
-      setDraftResult("Draft document downloaded successfully!");
+      if (data.status === "success" && data.file_url) {
+        setDraftResult(`Draft saved to Google Drive!\n\nAccess it here: ${data.file_url}`);
+        // Optional: Open in new tab automatically
+        // window.open(data.file_url, '_blank');
+      } else {
+        setDraftResult("Draft generated but no Drive link returned.");
+      }
     } catch (error) {
       console.error("Error drafting response:", error);
       alert("Error generating draft.");
