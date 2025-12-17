@@ -113,7 +113,12 @@ class GoogleDriveClient:
                     self.output_folder_id = output_folder['id']
                     logger.info(f"Found output folder: {self.output_folder_name} (ID: {self.output_folder_id})")
                 else:
-                    logger.warning(f"Output folder '{self.output_folder_name}' not found in parent")
+                    logger.warning(f"Output folder '{self.output_folder_name}' not found in parent - attempting to create")
+                    try:
+                        self.output_folder_id = self.create_folder(self.output_folder_name, parent_id)
+                        logger.info(f"Created output folder: {self.output_folder_name} (ID: {self.output_folder_id})")
+                    except Exception as e:
+                        logger.error(f"Failed to create output folder: {e}")
                     
         except Exception as e:
             logger.error(f"Error discovering folders: {e}")
@@ -144,6 +149,22 @@ class GoogleDriveClient:
             logger.error(f"Error finding folder '{folder_name}': {e}")
             return None
 
+
+    def create_folder(self, folder_name, parent_id):
+        """Create a new folder in Google Drive."""
+        if not self.service:
+            return None
+        try:
+            file_metadata = {
+                'name': folder_name,
+                'mimeType': 'application/vnd.google-apps.folder',
+                'parents': [parent_id]
+            }
+            file = self.service.files().create(body=file_metadata, fields='id').execute()
+            return file.get('id')
+        except Exception as e:
+            logger.error(f"Error creating folder '{folder_name}': {e}")
+            raise e
 
     def list_files_in_folder(self, folder_id=None):
         """

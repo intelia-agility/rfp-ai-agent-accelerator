@@ -1,0 +1,480 @@
+[
+  {
+    "insertId": "-vajnxse1l4ly",
+    "logName": "projects/rfp-accelerator-agent/logs/cloudaudit.googleapis.com%2Fsystem_event",
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "methodName": "/Services.DeleteService",
+      "resourceName": "namespaces/rfp-accelerator-agent/revisions/rfp-backend-00001-whc",
+      "response": {
+        "@type": "type.googleapis.com/google.cloud.run.v1.Revision",
+        "apiVersion": "serving.knative.dev/v1",
+        "kind": "Revision",
+        "metadata": {
+          "annotations": {
+            "autoscaling.knative.dev/maxScale": "10",
+            "run.googleapis.com/client-name": "gcloud",
+            "run.googleapis.com/client-version": "550.0.0",
+            "run.googleapis.com/operation-id": "abcbfaa1-43a9-4ce9-95fb-9be2020c1f8d",
+            "run.googleapis.com/startup-cpu-boost": "true",
+            "serving.knative.dev/creator": "680149411946-compute@developer.gserviceaccount.com"
+          },
+          "creationTimestamp": "2025-12-17T00:17:13.590753Z",
+          "deletionTimestamp": "2025-12-17T03:12:40.918065Z",
+          "generation": 2,
+          "labels": {
+            "client.knative.dev/nonce": "whnmczpybq",
+            "cloud.googleapis.com/location": "us-central1",
+            "run.googleapis.com/cascadeDelete": "true",
+            "run.googleapis.com/startupProbeType": "Default",
+            "serving.knative.dev/configuration": "rfp-backend",
+            "serving.knative.dev/configurationGeneration": "1",
+            "serving.knative.dev/route": "rfp-backend",
+            "serving.knative.dev/service": "rfp-backend",
+            "serving.knative.dev/serviceUid": "49ef39e4-ce69-42b8-9de4-706c59d31900"
+          },
+          "name": "rfp-backend-00001-whc",
+          "namespace": "680149411946",
+          "ownerReferences": [
+            {
+              "apiVersion": "serving.knative.dev/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "Configuration",
+              "name": "rfp-backend",
+              "uid": "aa4c8fa3-a0e9-42f7-b517-e5dc20d4bda3"
+            }
+          ],
+          "resourceVersion": "AAZGHTeX2mE",
+          "selfLink": "/apis/serving.knative.dev/v1/namespaces/680149411946/revisions/rfp-backend-00001-whc",
+          "uid": "ac7dfd62-8403-4421-9b75-54f65f0006e0"
+        },
+        "spec": {
+          "containerConcurrency": 160,
+          "containers": [
+            {
+              "env": [
+                {
+                  "name": "GCP_PROJECT_ID",
+                  "value": "rfp-accelerator-agent"
+                },
+                {
+                  "name": "GCP_LOCATION",
+                  "value": "us-central1"
+                }
+              ],
+              "image": "gcr.io/rfp-accelerator-agent/rfp-backend@sha256:d67f218a0ba01069f7345aa0efcc58d2e4a0f0f2b9dd383e39eadb5c4eff7a41",
+              "name": "rfp-backend-1",
+              "ports": [
+                {
+                  "containerPort": 8080,
+                  "name": "http1"
+                }
+              ],
+              "resources": {
+                "limits": {
+                  "cpu": "2",
+                  "memory": "2Gi"
+                }
+              },
+              "startupProbe": {
+                "failureThreshold": 1,
+                "periodSeconds": 240,
+                "tcpSocket": {
+                  "port": 8080
+                },
+                "timeoutSeconds": 240
+              }
+            }
+          ],
+          "serviceAccountName": "680149411946-compute@developer.gserviceaccount.com",
+          "timeoutSeconds": 300
+        },
+        "status": {
+          "conditions": [
+            {
+              "lastTransitionTime": "2025-12-17T03:12:40.958561Z",
+              "message": "Deploying revision succeeded in 49.21s.",
+              "reason": "Retired",
+              "status": "True",
+              "type": "Ready"
+            },
+            {
+              "lastTransitionTime": "2025-12-17T03:12:40.958561Z",
+              "message": "Revision retired.",
+              "reason": "Retired",
+              "severity": "Info",
+              "status": "False",
+              "type": "Active"
+            },
+            {
+              "lastTransitionTime": "2025-12-17T00:18:02.748149Z",
+              "message": "Containers became healthy in 12.03s.",
+              "status": "True",
+              "type": "ContainerHealthy"
+            },
+            {
+              "lastTransitionTime": "2025-12-17T00:17:48.959448Z",
+              "message": "Container image import completed in 34.68s.",
+              "status": "True",
+              "type": "ContainerReady"
+            },
+            {
+              "lastTransitionTime": "2025-12-17T03:12:40.958561Z",
+              "message": "Revision retired.",
+              "reason": "Retired",
+              "status": "Unknown",
+              "type": "ResourcesAvailable"
+            }
+          ],
+          "containerStatuses": [
+            {
+              "imageDigest": "gcr.io/rfp-accelerator-agent/rfp-backend@sha256:d67f218a0ba01069f7345aa0efcc58d2e4a0f0f2b9dd383e39eadb5c4eff7a41",
+              "name": "rfp-backend-1"
+            }
+          ],
+          "imageDigest": "gcr.io/rfp-accelerator-agent/rfp-backend@sha256:d67f218a0ba01069f7345aa0efcc58d2e4a0f0f2b9dd383e39eadb5c4eff7a41",
+          "logUrl": "https://console.cloud.google.com/logs/viewer?project=rfp-accelerator-agent&resource=cloud_run_revision/service_name/rfp-backend/revision_name/rfp-backend-00001-whc&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22rfp-backend%22%0Aresource.labels.revision_name%3D%22rfp-backend-00001-whc%22",
+          "observedGeneration": 2
+        }
+      },
+      "serviceName": "run.googleapis.com",
+      "status": {
+        "message": "Ready condition status changed to True for Revision rfp-backend-00001-whc with message: Deploying revision succeeded in 49.21s."
+      }
+    },
+    "receiveTimestamp": "2025-12-17T03:12:41.885765010Z",
+    "resource": {
+      "labels": {
+        "configuration_name": "rfp-backend",
+        "location": "us-central1",
+        "project_id": "rfp-accelerator-agent",
+        "revision_name": "rfp-backend-00001-whc",
+        "service_name": "rfp-backend"
+      },
+      "type": "cloud_run_revision"
+    },
+    "severity": "INFO",
+    "timestamp": "2025-12-17T03:12:40.976861Z"
+  },
+  {
+    "insertId": "-5szw1ld2jaw",
+    "logName": "projects/rfp-accelerator-agent/logs/cloudaudit.googleapis.com%2Fsystem_event",
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "methodName": "/Services.ReplaceService",
+      "resourceName": "namespaces/rfp-accelerator-agent/revisions/rfp-backend-00022-lq6",
+      "response": {
+        "@type": "type.googleapis.com/google.cloud.run.v1.Revision",
+        "apiVersion": "serving.knative.dev/v1",
+        "kind": "Revision",
+        "metadata": {
+          "annotations": {
+            "autoscaling.knative.dev/maxScale": "100",
+            "run.googleapis.com/build-source-location": "{\"rfp-backend-1\":\"gs://run-sources-rfp-accelerator-agent-australia-southeast2/services/rfp-backend/1765857913.011201-c9c3f401de004204896637ce62caaf73.zip#1765857913287540\"}",
+            "run.googleapis.com/client-name": "gcloud",
+            "run.googleapis.com/client-version": "549.0.1",
+            "run.googleapis.com/operation-id": "fb7be8f4-c938-493f-ae13-ea83cd896bfb",
+            "run.googleapis.com/startup-cpu-boost": "true",
+            "serving.knative.dev/creator": "vishavpreet.singh@intelia.com.au"
+          },
+          "creationTimestamp": "2025-12-16T04:08:50.099434Z",
+          "generation": 1,
+          "labels": {
+            "client.knative.dev/nonce": "aitzjgbkva",
+            "cloud.googleapis.com/location": "australia-southeast2",
+            "run.googleapis.com/satisfiesPzs": "true",
+            "run.googleapis.com/startupProbeType": "Default",
+            "serving.knative.dev/configuration": "rfp-backend",
+            "serving.knative.dev/configurationGeneration": "22",
+            "serving.knative.dev/route": "rfp-backend",
+            "serving.knative.dev/service": "rfp-backend",
+            "serving.knative.dev/serviceUid": "cdc929b2-9032-451f-a3d1-e2bd7f028169"
+          },
+          "name": "rfp-backend-00022-lq6",
+          "namespace": "680149411946",
+          "ownerReferences": [
+            {
+              "apiVersion": "serving.knative.dev/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "Configuration",
+              "name": "rfp-backend",
+              "uid": "ed0389de-86c5-4862-9a0a-3f568eace512"
+            }
+          ],
+          "resourceVersion": "AAZGCeQBu6Y",
+          "selfLink": "/apis/serving.knative.dev/v1/namespaces/680149411946/revisions/rfp-backend-00022-lq6",
+          "uid": "b0c53d1a-a8f2-4207-aabc-eee0962f74f8"
+        },
+        "spec": {
+          "containerConcurrency": 80,
+          "containers": [
+            {
+              "env": [
+                {
+                  "name": "GOOGLE_APPLICATION_CREDENTIALS",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "latest",
+                      "name": "rfp-drive-credentials"
+                    }
+                  }
+                }
+              ],
+              "image": "australia-southeast2-docker.pkg.dev/rfp-accelerator-agent/cloud-run-source-deploy/rfp-backend@sha256:b81ed11f19265b64098accccce6468ee14533e841d90737464d4a35704a09881",
+              "name": "rfp-backend-1",
+              "ports": [
+                {
+                  "containerPort": 8080,
+                  "name": "http1"
+                }
+              ],
+              "resources": {
+                "limits": {
+                  "cpu": "1000m",
+                  "memory": "2Gi"
+                }
+              },
+              "startupProbe": {
+                "failureThreshold": 1,
+                "periodSeconds": 240,
+                "tcpSocket": {
+                  "port": 8080
+                },
+                "timeoutSeconds": 240
+              }
+            }
+          ],
+          "serviceAccountName": "680149411946-compute@developer.gserviceaccount.com",
+          "timeoutSeconds": 300
+        },
+        "status": {
+          "conditions": [
+            {
+              "lastTransitionTime": "2025-12-16T04:09:14.232742Z",
+              "message": "The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=rfp-accelerator-agent&resource=cloud_run_revision/service_name/rfp-backend/revision_name/rfp-backend-00022-lq6&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22rfp-backend%22%0Aresource.labels.revision_name%3D%22rfp-backend-00022-lq6%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start",
+              "reason": "HealthCheckContainerError",
+              "status": "False",
+              "type": "Ready"
+            },
+            {
+              "lastTransitionTime": "2025-12-16T04:09:14.232742Z",
+              "message": "The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=rfp-accelerator-agent&resource=cloud_run_revision/service_name/rfp-backend/revision_name/rfp-backend-00022-lq6&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22rfp-backend%22%0Aresource.labels.revision_name%3D%22rfp-backend-00022-lq6%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start",
+              "reason": "HealthCheckContainerError",
+              "status": "False",
+              "type": "ContainerHealthy"
+            },
+            {
+              "lastTransitionTime": "2025-12-16T04:08:59.655584Z",
+              "message": "Container image import completed in 9.18s.",
+              "status": "True",
+              "type": "ContainerReady"
+            },
+            {
+              "lastTransitionTime": "2025-12-16T04:09:02.877749Z",
+              "message": "Provisioning imported containers completed in 3.22s. Checking container health. This will wait for up to 4m for the configured startup probe, including an initial delay of 0s.",
+              "status": "True",
+              "type": "ResourcesAvailable"
+            },
+            {
+              "lastTransitionTime": "2025-12-16T04:09:02.877749Z",
+              "message": "System will retry after 00:00 from lastTransitionTime for attempt 0.",
+              "reason": "ImmediateRetry",
+              "severity": "Info",
+              "status": "True",
+              "type": "Retry"
+            }
+          ],
+          "containerStatuses": [
+            {
+              "imageDigest": "australia-southeast2-docker.pkg.dev/rfp-accelerator-agent/cloud-run-source-deploy/rfp-backend@sha256:b81ed11f19265b64098accccce6468ee14533e841d90737464d4a35704a09881",
+              "name": "rfp-backend-1"
+            }
+          ],
+          "imageDigest": "australia-southeast2-docker.pkg.dev/rfp-accelerator-agent/cloud-run-source-deploy/rfp-backend@sha256:b81ed11f19265b64098accccce6468ee14533e841d90737464d4a35704a09881",
+          "logUrl": "https://console.cloud.google.com/logs/viewer?project=rfp-accelerator-agent&resource=cloud_run_revision/service_name/rfp-backend/revision_name/rfp-backend-00022-lq6&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22rfp-backend%22%0Aresource.labels.revision_name%3D%22rfp-backend-00022-lq6%22",
+          "observedGeneration": 1
+        }
+      },
+      "serviceName": "run.googleapis.com",
+      "status": {
+        "code": 9,
+        "message": "Ready condition status changed to False for Revision rfp-backend-00022-lq6 with message: The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=rfp-accelerator-agent&resource=cloud_run_revision/service_name/rfp-backend/revision_name/rfp-backend-00022-lq6&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22rfp-backend%22%0Aresource.labels.revision_name%3D%22rfp-backend-00022-lq6%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start"
+      }
+    },
+    "receiveTimestamp": "2025-12-16T04:09:15.062172061Z",
+    "resource": {
+      "labels": {
+        "configuration_name": "rfp-backend",
+        "location": "australia-southeast2",
+        "project_id": "rfp-accelerator-agent",
+        "revision_name": "rfp-backend-00022-lq6",
+        "service_name": "rfp-backend"
+      },
+      "type": "cloud_run_revision"
+    },
+    "severity": "ERROR",
+    "timestamp": "2025-12-16T04:09:14.242233Z"
+  },
+  {
+    "insertId": "ld84h5d2j2m",
+    "logName": "projects/rfp-accelerator-agent/logs/cloudaudit.googleapis.com%2Fsystem_event",
+    "protoPayload": {
+      "@type": "type.googleapis.com/google.cloud.audit.AuditLog",
+      "methodName": "/Services.ReplaceService",
+      "resourceName": "namespaces/rfp-accelerator-agent/revisions/rfp-backend-00021-5dg",
+      "response": {
+        "@type": "type.googleapis.com/google.cloud.run.v1.Revision",
+        "apiVersion": "serving.knative.dev/v1",
+        "kind": "Revision",
+        "metadata": {
+          "annotations": {
+            "autoscaling.knative.dev/maxScale": "100",
+            "run.googleapis.com/build-source-location": "{\"rfp-backend-1\":\"gs://run-sources-rfp-accelerator-agent-australia-southeast2/services/rfp-backend/1765857660.420405-51f76517223d4b1caccc5ca0b4d3bbfe.zip#1765857660695224\"}",
+            "run.googleapis.com/client-name": "gcloud",
+            "run.googleapis.com/client-version": "549.0.1",
+            "run.googleapis.com/operation-id": "0fd6b06a-6480-4cbc-a418-9feb71578a46",
+            "run.googleapis.com/startup-cpu-boost": "true",
+            "serving.knative.dev/creator": "vishavpreet.singh@intelia.com.au"
+          },
+          "creationTimestamp": "2025-12-16T04:03:38.697404Z",
+          "generation": 1,
+          "labels": {
+            "client.knative.dev/nonce": "oiaonxuhwj",
+            "cloud.googleapis.com/location": "australia-southeast2",
+            "run.googleapis.com/satisfiesPzs": "true",
+            "run.googleapis.com/startupProbeType": "Default",
+            "serving.knative.dev/configuration": "rfp-backend",
+            "serving.knative.dev/configurationGeneration": "21",
+            "serving.knative.dev/route": "rfp-backend",
+            "serving.knative.dev/service": "rfp-backend",
+            "serving.knative.dev/serviceUid": "cdc929b2-9032-451f-a3d1-e2bd7f028169"
+          },
+          "name": "rfp-backend-00021-5dg",
+          "namespace": "680149411946",
+          "ownerReferences": [
+            {
+              "apiVersion": "serving.knative.dev/v1",
+              "blockOwnerDeletion": true,
+              "controller": true,
+              "kind": "Configuration",
+              "name": "rfp-backend",
+              "uid": "ed0389de-86c5-4862-9a0a-3f568eace512"
+            }
+          ],
+          "resourceVersion": "AAZGCdF2g9Q",
+          "selfLink": "/apis/serving.knative.dev/v1/namespaces/680149411946/revisions/rfp-backend-00021-5dg",
+          "uid": "dba6e865-264a-402f-9931-dd0d3817378f"
+        },
+        "spec": {
+          "containerConcurrency": 80,
+          "containers": [
+            {
+              "env": [
+                {
+                  "name": "GOOGLE_APPLICATION_CREDENTIALS",
+                  "valueFrom": {
+                    "secretKeyRef": {
+                      "key": "latest",
+                      "name": "rfp-drive-credentials"
+                    }
+                  }
+                }
+              ],
+              "image": "australia-southeast2-docker.pkg.dev/rfp-accelerator-agent/cloud-run-source-deploy/rfp-backend@sha256:a590819e05f508689fa0006ed03abc046095f56f06d2481168650ec9d5e3dd80",
+              "name": "rfp-backend-1",
+              "ports": [
+                {
+                  "containerPort": 8080,
+                  "name": "http1"
+                }
+              ],
+              "resources": {
+                "limits": {
+                  "cpu": "1000m",
+                  "memory": "2Gi"
+                }
+              },
+              "startupProbe": {
+                "failureThreshold": 1,
+                "periodSeconds": 240,
+                "tcpSocket": {
+                  "port": 8080
+                },
+                "timeoutSeconds": 240
+              }
+            }
+          ],
+          "serviceAccountName": "680149411946-compute@developer.gserviceaccount.com",
+          "timeoutSeconds": 300
+        },
+        "status": {
+          "conditions": [
+            {
+              "lastTransitionTime": "2025-12-16T04:04:03.119060Z",
+              "message": "The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=rfp-accelerator-agent&resource=cloud_run_revision/service_name/rfp-backend/revision_name/rfp-backend-00021-5dg&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22rfp-backend%22%0Aresource.labels.revision_name%3D%22rfp-backend-00021-5dg%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start",
+              "reason": "HealthCheckContainerError",
+              "status": "False",
+              "type": "Ready"
+            },
+            {
+              "lastTransitionTime": "2025-12-16T04:04:03.119060Z",
+              "message": "The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=rfp-accelerator-agent&resource=cloud_run_revision/service_name/rfp-backend/revision_name/rfp-backend-00021-5dg&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22rfp-backend%22%0Aresource.labels.revision_name%3D%22rfp-backend-00021-5dg%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start",
+              "reason": "HealthCheckContainerError",
+              "status": "False",
+              "type": "ContainerHealthy"
+            },
+            {
+              "lastTransitionTime": "2025-12-16T04:03:49.377625Z",
+              "message": "Container image import completed in 10.29s.",
+              "status": "True",
+              "type": "ContainerReady"
+            },
+            {
+              "lastTransitionTime": "2025-12-16T04:03:52.354792Z",
+              "message": "Provisioning imported containers completed in 2.97s. Checking container health. This will wait for up to 4m for the configured startup probe, including an initial delay of 0s.",
+              "status": "True",
+              "type": "ResourcesAvailable"
+            },
+            {
+              "lastTransitionTime": "2025-12-16T04:03:52.354792Z",
+              "message": "System will retry after 00:00 from lastTransitionTime for attempt 0.",
+              "reason": "ImmediateRetry",
+              "severity": "Info",
+              "status": "True",
+              "type": "Retry"
+            }
+          ],
+          "containerStatuses": [
+            {
+              "imageDigest": "australia-southeast2-docker.pkg.dev/rfp-accelerator-agent/cloud-run-source-deploy/rfp-backend@sha256:a590819e05f508689fa0006ed03abc046095f56f06d2481168650ec9d5e3dd80",
+              "name": "rfp-backend-1"
+            }
+          ],
+          "imageDigest": "australia-southeast2-docker.pkg.dev/rfp-accelerator-agent/cloud-run-source-deploy/rfp-backend@sha256:a590819e05f508689fa0006ed03abc046095f56f06d2481168650ec9d5e3dd80",
+          "logUrl": "https://console.cloud.google.com/logs/viewer?project=rfp-accelerator-agent&resource=cloud_run_revision/service_name/rfp-backend/revision_name/rfp-backend-00021-5dg&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22rfp-backend%22%0Aresource.labels.revision_name%3D%22rfp-backend-00021-5dg%22",
+          "observedGeneration": 1
+        }
+      },
+      "serviceName": "run.googleapis.com",
+      "status": {
+        "code": 9,
+        "message": "Ready condition status changed to False for Revision rfp-backend-00021-5dg with message: The user-provided container failed to start and listen on the port defined provided by the PORT=8080 environment variable within the allocated timeout. This can happen when the container port is misconfigured or if the timeout is too short. The health check timeout can be extended. Logs for this revision might contain more information.\n\nLogs URL: https://console.cloud.google.com/logs/viewer?project=rfp-accelerator-agent&resource=cloud_run_revision/service_name/rfp-backend/revision_name/rfp-backend-00021-5dg&advancedFilter=resource.type%3D%22cloud_run_revision%22%0Aresource.labels.service_name%3D%22rfp-backend%22%0Aresource.labels.revision_name%3D%22rfp-backend-00021-5dg%22 \nFor more troubleshooting guidance, see https://cloud.google.com/run/docs/troubleshooting#container-failed-to-start"
+      }
+    },
+    "receiveTimestamp": "2025-12-16T04:04:03.159890453Z",
+    "resource": {
+      "labels": {
+        "configuration_name": "rfp-backend",
+        "location": "australia-southeast2",
+        "project_id": "rfp-accelerator-agent",
+        "revision_name": "rfp-backend-00021-5dg",
+        "service_name": "rfp-backend"
+      },
+      "type": "cloud_run_revision"
+    },
+    "severity": "ERROR",
+    "timestamp": "2025-12-16T04:04:03.128432Z"
+  }
+]

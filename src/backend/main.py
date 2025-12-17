@@ -92,6 +92,11 @@ async def draft_response(
     Draft response using company knowledge base, fill placeholders, and upload to Google Drive.
     """
     try:
+        print(f"Received draft request for file: {file.filename}")
+        
+        if not file.filename.endswith('.docx'):
+            raise HTTPException(status_code=400, detail="Input file must be a .docx document for drafting")
+
         # 1. Save input file
         input_path = f"temp_{file.filename}"
         output_filename = f"Draft_{file.filename}"
@@ -101,7 +106,6 @@ async def draft_response(
             shutil.copyfileobj(file.file, buffer)
 
         # 2. Extract text (mock for now, assume we read it)
-        # In reality, we'd use python-docx to read the text
         rfp_content_preview = "Sample RFP content..."
         
         # 3. Generate Draft Content
@@ -110,10 +114,15 @@ async def draft_response(
         # 4. Modify Document (fill placeholders)
         final_doc_path = drafter.generate_draft_document(draft_text, input_path, output_path, company_url=company_url)
         
+        if not final_doc_path:
+            raise HTTPException(status_code=500, detail="Failed to generate draft document. Ensure file is a valid .docx")
+        
         # 5. Upload to Google Drive
         drive_response = None
         if drive_client and final_doc_path and os.path.exists(final_doc_path):
             drive_response = drive_client.upload_file(final_doc_path, output_filename)
+        else:
+            print("Drive client not available or file path missing")
         
         # Cleanup
         if os.path.exists(input_path):
@@ -131,12 +140,16 @@ async def draft_response(
             }
         else:
             # Fallback if drive upload failed or not configured (though requirement implies it should be)
-            raise HTTPException(status_code=500, detail="Failed to upload document to Google Drive")
+            raise HTTPException(status_code=500, detail="Failed to upload document to Google Drive. Check server logs for details.")
 
+    except HTTPException as he:
+        # Re-raise HTTP exceptions
+        raise he
     except Exception as e:
         # Cleanup on error
         if 'input_path' in locals() and os.path.exists(input_path):
             os.remove(input_path)
+        print(f"Error in draft_response: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
