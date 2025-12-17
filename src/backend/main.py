@@ -27,15 +27,41 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize services
-analyzer = RFPAnalyzer()
-drafter = ResponseDrafter()
-q_gen = QuestionGenerator()
-drive_client = GoogleDriveClient() if DRIVE_AVAILABLE else None
+# Initialize services lazily to prevent startup failures
+analyzer = None
+drafter = None
+q_gen = None
+drive_client = None
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize services on startup with error handling"""
+    global analyzer, drafter, q_gen, drive_client
+    try:
+        analyzer = RFPAnalyzer()
+        drafter = ResponseDrafter()
+        q_gen = QuestionGenerator()
+        if DRIVE_AVAILABLE:
+            drive_client = GoogleDriveClient()
+        print("All services initialized successfully")
+    except Exception as e:
+        print(f"Warning: Some services failed to initialize: {e}")
+        # Initialize with None to allow app to start
+        if analyzer is None:
+            analyzer = RFPAnalyzer()
+        if drafter is None:
+            drafter = ResponseDrafter()
+        if q_gen is None:
+            q_gen = QuestionGenerator()
 
 @app.get("/")
 def read_root():
-    return {"message": "RFP AI Agent Accelerator API is running"}
+    return {"message": "RFP AI Agent Accelerator API is running", "status": "healthy"}
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint for Cloud Run"""
+    return {"status": "healthy", "service": "rfp-backend"}
 
 @app.post("/assess")
 async def assess_rfp(file: UploadFile = File(...)):
