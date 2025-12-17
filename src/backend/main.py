@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -83,13 +83,22 @@ async def assess_rfp(file: UploadFile = File(...)):
 class DraftRequest(BaseModel):
     pass
 
+def cleanup_files(paths: list):
+    for path in paths:
+        try:
+            if os.path.exists(path):
+                os.remove(path)
+        except Exception as e:
+            print(f"Error cleaning up file {path}: {e}")
+
 @app.post("/draft")
 async def draft_response(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...), 
     company_url: Optional[str] = Form(None)
 ):
     """
-    Draft response using company knowledge base, fill placeholders, and upload to Google Drive.
+    Draft response using company knowledge base, fill placeholders, and return the document for download.
     """
     try:
         print(f"Received draft request for file: {file.filename}")
@@ -105,7 +114,7 @@ async def draft_response(
         with open(input_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        # 2. Extract text (mock for now, assume we read it)
+        # 2. Mock extracting text
         rfp_content_preview = "Sample RFP content..."
         
         # 3. Generate Draft Content
@@ -117,37 +126,17 @@ async def draft_response(
         if not final_doc_path:
             raise HTTPException(status_code=500, detail="Failed to generate draft document. Ensure file is a valid .docx")
         
-        # 5. Upload to Google Drive
-        drive_response = None
-        if drive_client and final_doc_path and os.path.exists(final_doc_path):
-            drive_response = drive_client.upload_file(final_doc_path, output_filename)
-        else:
-            print("Drive client not available or file path missing")
+        # 5. Return File directly (Download) settings
+        # Add cleanup to background tasks
+        background_tasks.add_task(cleanup_files, [input_path, final_doc_path])
         
-        # Cleanup
-        if os.path.exists(input_path):
-            os.remove(input_path)
-        if final_doc_path and os.path.exists(final_doc_path):
-            os.remove(final_doc_path) # Remove local copy after upload
-
-        if drive_response:
-            return {
-                "status": "success",
-                "message": "Draft generated and saved to Google Drive",
-                "file_id": drive_response.get('id'),
-                "file_url": drive_response.get('url'),
-                "file_name": drive_response.get('name')
-            }
-        else:
-            # Fallback if drive upload failed (returned None)
-            service_status = "Available" if (drive_client and drive_client.service) else "Not Initialized"
-            folder_status = drive_client.output_folder_id if (drive_client and getattr(drive_client, 'output_folder_id', None)) else "Missing"
-            client_status = "Loaded" if drive_client else "None"
-            
-            raise HTTPException(status_code=500, detail=f"Failed to upload document. Diagnostics: client={client_status}, service={service_status}, folder_id={folder_status}. Check server logs.")
+        return FileResponse(
+            path=final_doc_path, 
+            filename=output_filename, 
+            media_type='application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        )
 
     except HTTPException as he:
-        # Re-raise HTTP exceptions
         raise he
     except Exception as e:
         # Cleanup on error
