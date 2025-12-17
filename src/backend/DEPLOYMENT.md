@@ -152,6 +152,16 @@ gcloud run services update rfp-backend \
     --set-env-vars "GOOGLE_APPLICATION_CREDENTIALS=$(cat key.json)"
 ```
 
+### Google Drive Folder Structure
+
+The application expects the following folder structure in the Service Account's Google Drive (or shared with it):
+
+- **RFP Accelerator Artefacts** (Parent Folder)
+  - **Source Information** (Folder for knowledge base/supporting documents)
+  - **RFP Output** (Folder where draft responses will be saved)
+
+The application will automatically discover these folders by name. Ensure the Service Account has **Editor** access to the parent folder.
+
 ## Testing the Deployment
 
 ### 1. Health Check
