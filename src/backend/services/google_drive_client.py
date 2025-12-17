@@ -77,21 +77,25 @@ class GoogleDriveClient:
 
     def _discover_folders(self):
         """
-        Automatically discover the Source Information and RFP Output folder IDs
-        by searching for them under the parent folder.
+        Automatically discover the Source Information and RFP Output folder IDs.
+        Uses GOOGLE_DRIVE_PARENT_FOLDER_ID if set, otherwise searches for parent folder by name.
         """
         if not self.service:
             return
             
         try:
-            # First, find the parent folder "RFP Accelerator Artefacts"
-            parent_folder = self._find_folder_by_name(self.parent_folder_name)
-            if not parent_folder:
-                logger.warning(f"Parent folder '{self.parent_folder_name}' not found")
-                return
+            parent_id = os.environ.get('GOOGLE_DRIVE_PARENT_FOLDER_ID')
             
-            parent_id = parent_folder['id']
-            logger.info(f"Found parent folder: {self.parent_folder_name} (ID: {parent_id})")
+            if not parent_id:
+                # Find the parent folder "RFP Accelerator Artefacts" by name
+                parent_folder = self._find_folder_by_name(self.parent_folder_name)
+                if not parent_folder:
+                    logger.warning(f"Parent folder '{self.parent_folder_name}' not found")
+                    return
+                parent_id = parent_folder['id']
+                logger.info(f"Found parent folder by name: {self.parent_folder_name} (ID: {parent_id})")
+            else:
+                logger.info(f"Using configured parent folder ID: {parent_id}")
             
             # Find Source Information folder
             if not self.source_folder_id:
