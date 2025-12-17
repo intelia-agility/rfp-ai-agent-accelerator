@@ -5,7 +5,7 @@ import Image from "next/image";
 
 // Helper to get API URL
 const getApiUrl = () => {
-  return "https://rfp-backend-680149411946.australia-southeast2.run.app";
+  return process.env.NEXT_PUBLIC_API_URL || "https://rfp-backend-680149411946.australia-southeast2.run.app";
 };
 
 export default function Home() {

@@ -9,20 +9,20 @@ $BACKEND_SERVICE_NAME = "rfp-backend"
 $FRONTEND_SERVICE_NAME = "rfp-frontend"
 
 Write-Host "Checking for gcloud CLI..."
-if (-not (Get-Command gcloud -ErrorAction SilentlyContinue)) {
-    Write-Error "Error: 'gcloud' command not found. Please install the Google Cloud SDK and ensure it's in your PATH."
+if (-not (Get-Command gcloud.cmd -ErrorAction SilentlyContinue)) {
+    Write-Error "Error: 'gcloud.cmd' command not found. Please install the Google Cloud SDK and ensure it's in your PATH."
     exit 1
 }
 
 Write-Host "Enabling necessary APIs..."
-gcloud services enable run.googleapis.com artifactregistry.googleapis.com cloudbuild.googleapis.com
+gcloud.cmd services enable run.googleapis.com artifactregistry.googleapis.com cloudbuild.googleapis.com
 if ($LASTEXITCODE -ne 0) { Write-Error "Failed to enable APIs"; exit 1 }
 
 Write-Host "Deploying Backend..."
 cd src/backend
 # Deploy source directly (Cloud Build will build the Dockerfile)
 # Added --memory 2Gi to prevent build/runtime memory issues
-gcloud run deploy $BACKEND_SERVICE_NAME --source . --allow-unauthenticated --region $REGION --memory 2Gi --format="value(status.url)" > backend_url.txt
+gcloud.cmd run deploy $BACKEND_SERVICE_NAME --source . --allow-unauthenticated --region $REGION --memory 2Gi --format="value(status.url)" > backend_url.txt
 
 if ($LASTEXITCODE -ne 0) { 
     Write-Error "Backend deployment failed. Check the logs above."
@@ -45,7 +45,7 @@ Write-Host "Deploying Frontend..."
 # Write .env.production for the build process to pick up NEXT_PUBLIC_API_URL
 Set-Content -Path ".env.production" -Value "NEXT_PUBLIC_API_URL=$BACKEND_URL"
 
-gcloud run deploy $FRONTEND_SERVICE_NAME --source . --allow-unauthenticated --region $REGION --set-env-vars NEXT_PUBLIC_API_URL=$BACKEND_URL
+gcloud.cmd run deploy $FRONTEND_SERVICE_NAME --source . --allow-unauthenticated --region $REGION --set-env-vars NEXT_PUBLIC_API_URL=$BACKEND_URL
 
 
 if ($LASTEXITCODE -ne 0) { 
@@ -57,7 +57,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Deployment Complete."
 Write-Host "Backend: $BACKEND_URL"
 # Fetch Frontend URL
-$FRONTEND_URL = gcloud run services describe $FRONTEND_SERVICE_NAME --platform managed --region $REGION --format="value(status.url)"
+$FRONTEND_URL = gcloud.cmd run services describe $FRONTEND_SERVICE_NAME --platform managed --region $REGION --format="value(status.url)"
 Write-Host "Frontend: $FRONTEND_URL"
 
 cd ../..
