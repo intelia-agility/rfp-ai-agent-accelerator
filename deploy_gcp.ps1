@@ -22,7 +22,8 @@ Write-Host "Deploying Backend..."
 cd src/backend
 # Deploy source directly (Cloud Build will build the Dockerfile)
 # Added --memory 2Gi to prevent build/runtime memory issues
-gcloud.cmd run deploy $BACKEND_SERVICE_NAME --source . --allow-unauthenticated --region $REGION --memory 2Gi --format="value(status.url)" > backend_url.txt
+# Added --update-secrets to mount Google Drive credentials
+gcloud.cmd run deploy $BACKEND_SERVICE_NAME --source . --allow-unauthenticated --region $REGION --memory 2Gi --update-secrets=GOOGLE_APPLICATION_CREDENTIALS=google-drive-credentials:latest --format="value(status.url)" > backend_url.txt
 
 if ($LASTEXITCODE -ne 0) { 
     Write-Error "Backend deployment failed. Check the logs above."
