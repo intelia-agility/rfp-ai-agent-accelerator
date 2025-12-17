@@ -336,7 +336,7 @@ class GoogleDriveClient:
             if filename.endswith('.docx'):
                 file_metadata['mimeType'] = 'application/vnd.google-apps.document'
             
-            media = MediaFileUpload(file_path, mimetype=mime_type, resumable=True)
+            media = MediaFileUpload(file_path, mimetype=mime_type, resumable=False)
             
             file = self.service.files().create(
                 body=file_metadata,
@@ -353,6 +353,12 @@ class GoogleDriveClient:
             }
             
         except Exception as e:
+            error_msg = str(e)
+            if "storageQuotaExceeded" in error_msg:
+                msg = "Upload Failed: Service Account storage quota exceeded. Please move the 'RFP Accelerator Artefacts' folder to a Google Shared Drive (Team Drive) to enable uploads."
+                logger.error(msg)
+                raise Exception(msg)
+            
             logger.error(f"Error uploading file to Google Drive: {e}")
-            return None
+            raise e
 
