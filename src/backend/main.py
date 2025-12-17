@@ -139,8 +139,12 @@ async def draft_response(
                 "file_name": drive_response.get('name')
             }
         else:
-            # Fallback if drive upload failed or not configured (though requirement implies it should be)
-            raise HTTPException(status_code=500, detail="Failed to upload document to Google Drive. Check server logs for details.")
+            # Fallback if drive upload failed (returned None)
+            service_status = "Available" if (drive_client and drive_client.service) else "Not Initialized"
+            folder_status = drive_client.output_folder_id if (drive_client and getattr(drive_client, 'output_folder_id', None)) else "Missing"
+            client_status = "Loaded" if drive_client else "None"
+            
+            raise HTTPException(status_code=500, detail=f"Failed to upload document. Diagnostics: client={client_status}, service={service_status}, folder_id={folder_status}. Check server logs.")
 
     except HTTPException as he:
         # Re-raise HTTP exceptions
