@@ -12,7 +12,9 @@ class LLMClient:
         try:
             # Get GCP configuration from environment
             project_id = os.getenv("GCP_PROJECT_ID")
-            location = os.getenv("GCP_LOCATION", "australia-southeast2")
+            # Force us-central1 for Model Availability reliability
+            # australia-southeast2 may not support all Gemini 1.5 features
+            location = os.getenv("GCP_LOCATION", "us-central1")
             
             if not project_id:
                 logger.warning("GCP_PROJECT_ID not set - LLM client may not work properly")
@@ -22,7 +24,14 @@ class LLMClient:
             vertexai.init(project=project_id, location=location)
             
             # Initialize the model
-            self.model = GenerativeModel("gemini-1.5-flash")
+            from vertexai.generative_models import HarmCategory, HarmBlockThreshold
+            self.safety_settings = {
+                HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+                HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
+            }
+            self.model = GenerativeModel("gemini-2.5-flash")
             logger.info("LLM Client initialized successfully")
         except Exception as e:
             logger.error(f"Error initializing LLM client: {e}")
@@ -35,9 +44,23 @@ class LLMClient:
             return "Error: LLM service not available."
             
         try:
-            response = self.model.generate_content(prompt)
+            logger.info(f"Sending request to LLM. Prompt length: {len(prompt)} chars")
+            # Log first 100 chars to verify content
+            logger.info(f"Prompt preview: {prompt[:100]}...")
+            
+            response = self.model.generate_content(
+                prompt,
+                generation_config={
+                    "temperature": 0.2,
+                    "max_output_tokens": 8192,
+                },
+                safety_settings=self.safety_settings
+            )
             return response.text
         except Exception as e:
             logger.error(f"Error generating content: {e}")
+            # If it's a 400/403, try to extract more details
+            if hasattr(e, 'message'):
+                logger.error(f"Error details: {e.message}")
             return f"Error generating content: {str(e)}"
 

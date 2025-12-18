@@ -162,10 +162,16 @@ class ResponseDrafter:
             source_context = "SOURCE INFORMATION (from Google Drive):\n"
             for doc in source_documents:
                 # Include full content since we are using Gemini 1.5 Flash (1M context)
-                # Limit per document to avoid extreme token usage if docs are massive
                 content_preview = doc['content']
-                if len(content_preview) > 50000:
-                    content_preview = content_preview[:50000] + "...[truncated]"
+                
+                # DOUBLE SAFETY CHECK for Private Keys in memory
+                if "-----BEGIN PRIVATE KEY-----" in content_preview:
+                    content_preview = "[SENSITIVE CONTENT REMOVED]"
+                
+                # Limit size per document safer limit
+                if len(content_preview) > 30000:
+                    content_preview = content_preview[:30000] + "...[truncated]"
+                
                 source_context += f"\n--- DOCUMENT: {doc['name']} ---\n{content_preview}\n"
         
         if website_content:

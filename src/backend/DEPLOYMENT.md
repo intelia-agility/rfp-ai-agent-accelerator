@@ -22,7 +22,7 @@ The Cloud Run deployment was failing with the error:
 2. **`services/llm_client.py`**:
    - Added proper `vertexai.init()` call with project configuration
    - Added comprehensive error handling
-   - Changed model to `gemini-1.5-flash` (more reliable)
+   - Changed model to `gemini-3-flash` (more reliable)
 
 3. **`Dockerfile`**:
    - Set default PORT=8080

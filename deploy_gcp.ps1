@@ -20,10 +20,17 @@ if ($LASTEXITCODE -ne 0) { Write-Error "Failed to enable APIs"; exit 1 }
 
 Write-Host "Deploying Backend..."
 cd src/backend
-# Deploy source directly (Cloud Build will build the Dockerfile)
 # Added --memory 2Gi to prevent build/runtime memory issues
-# Added --update-secrets to mount Google Drive credentials
-gcloud.cmd run deploy $BACKEND_SERVICE_NAME --source . --allow-unauthenticated --region $REGION --memory 2Gi --update-secrets=GOOGLE_APPLICATION_CREDENTIALS=google-drive-credentials:latest --format="value(status.url)" > backend_url.txt
+# MOUNT SECRETS AS A FILE VOLUME, NOT ENV VAR
+# Vertex AI requires GOOGLE_APPLICATION_CREDENTIALS to be a file path, not the JSON content itself.
+gcloud.cmd run deploy $BACKEND_SERVICE_NAME `
+    --source . `
+    --allow-unauthenticated `
+    --region $REGION `
+    --memory 2Gi `
+    --update-secrets=/secrets/key.json=google-drive-credentials:latest `
+    --set-env-vars=GOOGLE_APPLICATION_CREDENTIALS=/secrets/key.json `
+    --format="value(status.url)" > backend_url.txt
 
 if ($LASTEXITCODE -ne 0) { 
     Write-Error "Backend deployment failed. Check the logs above."
