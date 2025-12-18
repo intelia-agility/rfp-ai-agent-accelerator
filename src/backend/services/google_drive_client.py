@@ -169,7 +169,9 @@ class GoogleDriveClient:
             results = self.service.files().list(
                 q=query,
                 pageSize=10,
-                fields="files(id, name)"
+                fields="files(id, name)",
+                includeItemsFromAllDrives=True,
+                supportsAllDrives=True
             ).execute()
             
             files = results.get('files', [])
@@ -190,7 +192,11 @@ class GoogleDriveClient:
                 'mimeType': 'application/vnd.google-apps.folder',
                 'parents': [parent_id]
             }
-            file = self.service.files().create(body=file_metadata, fields='id').execute()
+            file = self.service.files().create(
+                body=file_metadata, 
+                fields='id',
+                supportsAllDrives=True
+            ).execute()
             return file.get('id')
         except Exception as e:
             logger.error(f"Error creating folder '{folder_name}': {e}")
@@ -212,7 +218,9 @@ class GoogleDriveClient:
             results = self.service.files().list(
                 q=query,
                 pageSize=100,
-                fields="files(id, name, mimeType, modifiedTime)"
+                fields="files(id, name, mimeType, modifiedTime)",
+                includeItemsFromAllDrives=True,
+                supportsAllDrives=True
             ).execute()
             
             files = results.get('files', [])
@@ -229,6 +237,7 @@ class GoogleDriveClient:
             return None
             
         try:
+            # Check supportsAllDrives for get calls too, though not strictly always needed for get_media usually
             request = self.service.files().get_media(fileId=file_id)
             fh = io.BytesIO()
             downloader = MediaIoBaseDownload(fh, request)
@@ -256,7 +265,11 @@ class GoogleDriveClient:
             
         try:
             # Get file metadata
-            file_metadata = self.service.files().get(fileId=file_id, fields='name,mimeType').execute()
+            file_metadata = self.service.files().get(
+                fileId=file_id, 
+                fields='name,mimeType',
+                supportsAllDrives=True
+            ).execute()
             file_name = file_metadata.get('name', 'unknown')
             mime_type = file_metadata.get('mimeType', '')
             
@@ -371,7 +384,8 @@ class GoogleDriveClient:
             file = self.service.files().create(
                 body=file_metadata,
                 media_body=media,
-                fields='id, name, webViewLink'
+                fields='id, name, webViewLink',
+                supportsAllDrives=True
             ).execute()
             
             logger.info(f"File uploaded successfully to '{self.output_folder_name}' folder: {file.get('name')} (ID: {file.get('id')})")
