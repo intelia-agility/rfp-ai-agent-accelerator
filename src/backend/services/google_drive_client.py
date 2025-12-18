@@ -11,6 +11,7 @@ import os
 import json
 import tempfile
 import logging
+from services.secret_manager import get_secret
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,11 @@ class GoogleDriveClient:
             creds_path_or_json = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
             
             if not creds_path_or_json:
-                logger.info("GOOGLE_APPLICATION_CREDENTIALS not set - Google Drive integration disabled")
+                logger.info("GOOGLE_APPLICATION_CREDENTIALS not set - searching Secret Manager...")
+                creds_path_or_json = get_secret("google-drive-credentials")
+                
+            if not creds_path_or_json:
+                logger.info("Credentials not found in Secret Manager - Google Drive integration disabled")
                 return
             
             # Check if it's a JSON string or file path

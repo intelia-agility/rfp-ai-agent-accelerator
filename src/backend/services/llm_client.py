@@ -2,6 +2,7 @@ import vertexai
 from vertexai.generative_models import GenerativeModel, Part
 import os
 import logging
+from config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -10,11 +11,9 @@ class LLMClient:
         """Initialize Vertex AI and the Gemini model with proper error handling."""
         self.model = None
         try:
-            # Get GCP configuration from environment
-            project_id = os.getenv("GCP_PROJECT_ID")
-            # Force us-central1 for Model Availability reliability
-            # australia-southeast2 may not support all Gemini 1.5 features
-            location = os.getenv("GCP_LOCATION", "us-central1")
+            # Get GCP configuration from settings
+            project_id = settings.GCP_PROJECT_ID
+            location = settings.GCP_LOCATION
             
             if not project_id:
                 logger.warning("GCP_PROJECT_ID not set - LLM client may not work properly")
