@@ -79,13 +79,29 @@ class GoogleDriveClient:
 
     def get_config_status(self):
         """Returns the current configuration status for debugging."""
+        parent_id = os.environ.get('GOOGLE_DRIVE_PARENT_FOLDER_ID', '0AJriKoRrgD4nUk9PVA')
+        
+        # List actual contents of parent folder to verify access/visiblity
+        parent_contents = []
+        if self.service and parent_id:
+            try:
+                results = self.service.files().list(
+                    q=f"'{parent_id}' in parents and trashed=false",
+                    fields="files(id, name, mimeType)",
+                    pageSize=20
+                ).execute()
+                parent_contents = results.get('files', [])
+            except Exception as e:
+                parent_contents = [f"Error listing parent: {str(e)}"]
+
         return {
             "available": GOOGLE_DRIVE_AVAILABLE,
             "initialized": self.service is not None,
             "service_account_email": self.service_account_email,
-            "parent_folder_name": self.parent_folder_name,
+            "parent_folder_id_target": parent_id,
             "source_folder_id": self.source_folder_id,
             "output_folder_id": self.output_folder_id,
+            "files_in_parent_folder": parent_contents
         }
 
     def _discover_folders(self):
