@@ -51,8 +51,8 @@ class LLMClient:
             response = self.model.generate_content(
                 prompt,
                 generation_config={
-                    "temperature": 0.2,
-                    "max_output_tokens": 8192,
+                    "temperature": 0.4,  # Slightly higher for better extraction and synthesis
+                    "max_output_tokens": 16384,  # Allow longer, more detailed responses
                 },
                 safety_settings=self.safety_settings
             )

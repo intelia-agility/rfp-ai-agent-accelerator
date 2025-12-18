@@ -180,27 +180,77 @@ class ResponseDrafter:
         if not source_context:
             return {p: "[No source information available]" for p in placeholders}
 
-        # Prepare Prompt
+        # Prepare Prompt with two-pass strategy
         placeholder_list = "\n".join([f"- {p}" for p in placeholders])
         
         prompt = f"""
-        You are an expert Proposal Writer assisting with an RFP usage response. 
-        Your task is to generate specific, high-quality content for the following placeholders found in a draft document.
+        You are an expert data extraction and proposal writing AI. Your task has TWO PHASES:
         
-        Use the provided SOURCE INFORMATION to find the correct details. 
-        Do not make up information. If the specific detail is not found, provide a professional generic placeholder or note.
-
-        PLACEHOLDERS TO FILL:
+        PHASE 1: EXTRACT ALL INFORMATION FROM SOURCE DOCUMENTS
+        Read through ALL the source documents below and create a comprehensive knowledge base. Pay special attention to:
+        
+        1. TABLES - Extract ALL table data including:
+           - Director details tables (Name, Address, Position, Tenure, etc.)
+           - Company details tables (Trading name, ABN, ACN, Registration details, etc.)
+           - Contact information tables
+           - Authority/Authorization tables
+        
+        2. STRUCTURED DATA - Look for:
+           - Names (directors, officers, authorized persons)
+           - Numbers (ABN, ACN, phone numbers)
+           - Addresses (registered office, principal place of business)
+           - Dates (incorporation date, tenure periods)
+           - Yes/No answers (bankruptcy declarations, etc.)
+        
+        3. CONTEXT - Understand the relationship between data:
+           - Which address belongs to which director
+           - Which position each person holds
+           - How long each director has served
+        
+        PHASE 2: FILL PLACEHOLDERS INTELLIGENTLY
+        Now use your extracted knowledge to fill these placeholders:
+        
         {placeholder_list}
-
+        
+        MATCHING RULES:
+        - "Name" in a Directors table → Extract director names from your knowledge base
+        - "Address" in a Directors table → Extract corresponding director addresses
+        - "Position held" → Extract director positions/roles
+        - "Length of tenure" → Extract tenure information
+        - "Trading name" → Extract company trading name
+        - "ABN" or "Australian Business Number" → Extract ABN number
+        - "ACN" or "Australian Company Number" → Extract ACN number
+        - "Registered office" or "Address of registered office" → Extract registered address
+        - "Date of incorporation" → Extract incorporation date
+        - "Name of authorised officer" → Extract authorized officer name
+        - Bankruptcy/administration questions → Extract Yes/No answers
+        
+        CRITICAL INSTRUCTIONS:
+        1. If you found information in PHASE 1, USE IT EXACTLY - don't say "not available"
+        2. For table cells, extract the SPECIFIC value for that row/column combination
+        3. If a placeholder asks for "Name" and you're in row 1 of Directors table, use Director 1's name
+        4. If a placeholder asks for "Address" and you're in row 2 of Directors table, use Director 2's address
+        5. Match the context - if the placeholder is in "Table 5. Directors' details", use director information
+        6. If truly not found after thorough search, use "[Information not available in source documents]"
+        
+        SOURCE DOCUMENTS:
         {source_context}
-
-        INSTRUCTIONS:
-        1. Return a JSON object where the keys are the placeholder names (exactly as listed) and the values are the generated content.
-        2. The content should be professional, ready-to-use text for a proposal.
-        3. For simple fields (e.g., Company Name, ABN), provide just the value.
-        4. For descriptive fields (e.g., Methodology, Experience), provide a comprehensive 1-2 paragraph response summarizing the source info.
-        5. Return ONLY the valid JSON string. Do not include markdown formatting.
+        
+        OUTPUT FORMAT:
+        Return a JSON object where:
+        - Keys = exact placeholder names from the list above
+        - Values = the extracted information or generated content
+        
+        EXAMPLE OUTPUT STRUCTURE:
+        {{
+            "Trading name": "Intelia Pty Ltd",
+            "Name": "John Smith",
+            "Address": "123 Main St, Sydney NSW 2000",
+            "Position held": "Director",
+            "Length of tenure": "5 years"
+        }}
+        
+        Return ONLY the JSON object. No markdown, no explanations, no extra text.
         """
 
         try:

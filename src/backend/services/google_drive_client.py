@@ -258,7 +258,7 @@ class GoogleDriveClient:
     def get_file_content_as_text(self, file_id):
         """
         Download and extract text content from a file.
-        Supports DOCX and TXT files.
+        Supports DOCX, TXT, and Google Docs files.
         """
         if not self.service:
             return ""
@@ -273,7 +273,30 @@ class GoogleDriveClient:
             file_name = file_metadata.get('name', 'unknown')
             mime_type = file_metadata.get('mimeType', '')
             
-            # Download to temp location
+            # Handle Google Docs (native Google Drive documents)
+            if mime_type == 'application/vnd.google-apps.document':
+                try:
+                    # Export Google Doc as plain text
+                    request = self.service.files().export_media(
+                        fileId=file_id,
+                        mimeType='text/plain'
+                    )
+                    fh = io.BytesIO()
+                    downloader = MediaIoBaseDownload(fh, request)
+                    
+                    done = False
+                    while not done:
+                        status, done = downloader.next_chunk()
+                    
+                    fh.seek(0)
+                    text = fh.read().decode('utf-8')
+                    logger.info(f"Successfully exported Google Doc: {file_name}")
+                    return text
+                except Exception as e:
+                    logger.error(f"Error exporting Google Doc '{file_name}': {e}")
+                    return ""
+            
+            # Download to temp location for other file types
             temp_path = f"temp_drive_{file_id}_{file_name}"
             downloaded = self.download_file(file_id, temp_path)
             
