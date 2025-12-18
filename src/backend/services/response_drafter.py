@@ -116,32 +116,31 @@ class ResponseDrafter:
                             matches = re.findall(placeholder_pattern, paragraph.text)
                             placeholders.update(matches)
             
-            # Generate replacements for each placeholder using source documents
-            replacements = {}
-            for placeholder in placeholders:
-                replacement = self._generate_placeholder_content(
-                    placeholder, 
-                    website_content, 
-                    company_url,
-                    source_documents
-                )
-                replacements[f"[{placeholder}]"] = replacement
+            # Generate replacements for all placeholders in a single batch using LLM
+            # This provides much better context and quality than isolated heuristic checks
+            replacements = self._batch_generate_placeholders(placeholders, website_content, source_documents)
             
             # Replace placeholders in paragraphs
             for paragraph in doc.paragraphs:
                 for placeholder, replacement in replacements.items():
-                    if placeholder in paragraph.text:
-                        paragraph.text = paragraph.text.replace(placeholder, replacement)
-            
+                    # Handle both with and without brackets keys to be safe
+                    target_key = f"[{placeholder}]"
+                    if target_key in paragraph.text:
+                        paragraph.text = paragraph.text.replace(target_key, replacement)
+                    elif placeholder in paragraph.text and not placeholder.startswith("["):
+                         # Fallback if the key in dict included brackets already
+                         paragraph.text = paragraph.text.replace(placeholder, replacement)
+
             # Replace placeholders in tables
             for table in doc.tables:
                 for row in table.rows:
                     for cell in row.cells:
                         for paragraph in cell.paragraphs:
                             for placeholder, replacement in replacements.items():
-                                if placeholder in paragraph.text:
-                                    paragraph.text = paragraph.text.replace(placeholder, replacement)
-            
+                                target_key = f"[{placeholder}]"
+                                if target_key in paragraph.text:
+                                    paragraph.text = paragraph.text.replace(target_key, replacement)
+
             doc.save(output_path)
             return output_path
             
@@ -149,119 +148,100 @@ class ResponseDrafter:
             print(f"Error modifying docx: {e}")
             return None
     
-    def _generate_placeholder_content(self, placeholder: str, website_content: str, company_url: str, source_documents: list = None) -> str:
+    def _batch_generate_placeholders(self, placeholders: set, website_content: str, source_documents: list) -> dict:
         """
-        Generate appropriate content for a specific placeholder based on its name, 
-        company context, and source documents from Google Drive.
+        Generate content for all placeholders in one go using the LLM and Source Documents.
+        Returns a dictionary {placeholder_name: generated_content}
         """
-        if source_documents is None:
-            source_documents = []
-            
-        placeholder_lower = placeholder.lower()
-        
-        # Search source documents for relevant information
-        def search_source_docs(keywords):
-            """Search source documents for content matching keywords."""
+        if not placeholders:
+            return {}
+
+        # Prepare Source Context
+        source_context = ""
+        if source_documents:
+            source_context = "SOURCE INFORMATION (from Google Drive):\n"
             for doc in source_documents:
-                content_lower = doc['content'].lower()
-                if any(keyword in content_lower for keyword in keywords):
-                    # Return a relevant excerpt
-                    for keyword in keywords:
-                        if keyword in content_lower:
-                            idx = content_lower.find(keyword)
-                            # Get context around the keyword
-                            start = max(0, idx - 100)
-                            end = min(len(doc['content']), idx + 200)
-                            return doc['content'][start:end].strip()
-            return None
+                # Include full content since we are using Gemini 1.5 Flash (1M context)
+                # Limit per document to avoid extreme token usage if docs are massive
+                content_preview = doc['content']
+                if len(content_preview) > 50000:
+                    content_preview = content_preview[:50000] + "...[truncated]"
+                source_context += f"\n--- DOCUMENT: {doc['name']} ---\n{content_preview}\n"
         
-        # Common placeholder mappings with source document search
-        if 'trading name' in placeholder_lower or 'company name' in placeholder_lower:
-            # Search source docs for company name
-            company_info = search_source_docs(['company name', 'trading name', 'business name'])
-            if company_info:
-                return company_info
-            # Extract company name from URL or website
-            if company_url:
-                domain = company_url.replace('https://', '').replace('http://', '').replace('www.', '').split('/')[0]
-                return domain.split('.')[0].capitalize()
-            return "[Company Name]"
+        if website_content:
+            source_context += f"\n--- WEBSITE CONTENT ---\n{website_content}\n"
+
+        if not source_context:
+            return {p: "[No source information available]" for p in placeholders}
+
+        # Prepare Prompt
+        placeholder_list = "\n".join([f"- {p}" for p in placeholders])
         
-        elif 'abn' in placeholder_lower or 'acn' in placeholder_lower:
-            # Search for ABN/ACN in source documents
-            abn_info = search_source_docs(['abn', 'acn', 'australian business number'])
-            if abn_info:
-                return abn_info
-            return "[ABN/ACN Number]"
+        prompt = f"""
+        You are an expert Proposal Writer assisting with an RFP usage response. 
+        Your task is to generate specific, high-quality content for the following placeholders found in a draft document.
         
-        elif 'address' in placeholder_lower:
-            # Search for address in source documents
-            address_info = search_source_docs(['address', 'location', 'office'])
-            if address_info:
-                return address_info
-            return "[Company Address]"
-        
-        elif 'phone' in placeholder_lower or 'contact' in placeholder_lower:
-            # Search for contact info
-            contact_info = search_source_docs(['phone', 'contact', 'telephone', 'mobile'])
-            if contact_info:
-                return contact_info
-            return "[Contact Number]"
-        
-        elif 'email' in placeholder_lower:
-            # Search for email
-            email_info = search_source_docs(['email', '@', 'contact'])
-            if email_info:
-                return email_info
-            return "[Email Address]"
-        
-        elif 'experience' in placeholder_lower or 'capability' in placeholder_lower:
-            # Search source docs for experience/capability info
-            exp_info = search_source_docs(['experience', 'capability', 'expertise', 'track record'])
-            if exp_info:
-                return exp_info
-            if website_content:
-                return f"With extensive experience in delivering innovative solutions, our team specializes in {website_content[:100]}..."
-            return "[Company Experience and Capabilities]"
-        
-        elif 'detail' in placeholder_lower or 'description' in placeholder_lower:
-            # Search for relevant details
-            detail_info = search_source_docs(['description', 'details', 'overview'])
-            if detail_info:
-                return detail_info
-            if website_content:
-                return f"Our approach leverages {website_content[:80]}... to deliver exceptional outcomes."
-            return "[Detailed Description]"
-        
-        else:
-            # Generic replacement - try to find relevant content from source docs
-            keywords = placeholder_lower.split()
-            generic_info = search_source_docs(keywords)
-            if generic_info:
-                return generic_info
+        Use the provided SOURCE INFORMATION to find the correct details. 
+        Do not make up information. If the specific detail is not found, provide a professional generic placeholder or note.
+
+        PLACEHOLDERS TO FILL:
+        {placeholder_list}
+
+        {source_context}
+
+        INSTRUCTIONS:
+        1. Return a JSON object where the keys are the placeholder names (exactly as listed) and the values are the generated content.
+        2. The content should be professional, ready-to-use text for a proposal.
+        3. For simple fields (e.g., Company Name, ABN), provide just the value.
+        4. For descriptive fields (e.g., Methodology, Experience), provide a comprehensive 1-2 paragraph response summarizing the source info.
+        5. Return ONLY the valid JSON string. Do not include markdown formatting.
+        """
+
+        try:
+            print(f"Generating batch response for {len(placeholders)} placeholders...")
+            response_text = self.llm.generate_content(prompt)
             
-            # Use LLM to generate content if we have source documents
-            if source_documents and len(source_documents) > 0:
+            # Check if LLM client returned an error string
+            if response_text.startswith("Error generating content"):
+                print(f"LLM Generation Error: {response_text}")
+                return {p: f"[{response_text}]" for p in placeholders}
+
+            # Robust JSON extraction
+            cleaned_replacements = {}
+            import json
+            import re
+            
+            # Find the first '{' and last '}' to extract the JSON object
+            json_match = re.search(r'(\{.*\})', response_text, re.DOTALL)
+            
+            if json_match:
+                json_str = json_match.group(1)
                 try:
-                    # Build context from source documents
-                    context = "\n".join([f"{doc['name']}: {doc['content'][:500]}" for doc in source_documents[:3]])
-                    prompt = f"""Based on the following source documents, provide appropriate content for the placeholder "{placeholder}":
+                    replacements = json.loads(json_str)
                     
-                    SOURCE DOCUMENTS:
-                    {context}
+                    # Validate keys match
+                    for p in placeholders:
+                        # the LLM might return keys with brackets or w/o, try to match
+                        if p in replacements:
+                            cleaned_replacements[p] = replacements[p]
+                        elif f"[{p}]" in replacements:
+                            cleaned_replacements[p] = replacements[f"[{p}]"]
+                        else:
+                            # Fallback if missed
+                            cleaned_replacements[p] = "[Information not found in knowledge base]"
+                            
+                    return cleaned_replacements
                     
-                    Provide a concise, professional response (2-3 sentences maximum) that would be appropriate for this placeholder in an RFP response.
-                    """
-                    response = self.llm.generate_content(prompt)
-                    if response and len(response) > 10:
-                        return response.strip()
-                except Exception as e:
-                    print(f"Error using LLM for placeholder: {e}")
-            
-            # Fallback
-            if website_content:
-                return f"[Based on our expertise: {website_content[:60]}...]"
-            return f"[{placeholder}]"
+                except json.JSONDecodeError as je:
+                    print(f"JSON Parse Error: {je}. Response was: {response_text[:200]}...")
+                    return {p: "[Error: AI response was not valid data]" for p in placeholders}
+            else:
+                print(f"No JSON found in response. Response was: {response_text[:200]}...")
+                return {p: "[Error: AI provided no structured data]" for p in placeholders}
+
+        except Exception as e:
+            print(f"Error in batch generation: {e}")
+            return {p: f"[System Error: {str(e)}]" for p in placeholders}
 
 
 

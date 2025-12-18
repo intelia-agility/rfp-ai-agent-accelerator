@@ -292,6 +292,12 @@ class GoogleDriveClient:
             elif temp_path.endswith('.txt') or 'text/plain' in mime_type:
                 with open(temp_path, 'r', encoding='utf-8') as f:
                     text = f.read()
+                    
+                # SAFETY CHECK: If the text looks like a Google Service Account Key JSON, DO NOT return it.
+                # This prevents credentials from being read as "source content" if a user accidentally uploads them.
+                if '"private_key":' in text and '"client_email":' in text:
+                    logger.warning(f"SKIPPING DOCUMENT: File '{file_name}' appears to contain service account credentials!")
+                    return ""
             
             # Cleanup
             if os.path.exists(temp_path):
