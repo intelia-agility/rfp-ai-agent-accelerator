@@ -38,10 +38,17 @@ class GoogleDriveClient:
             
             if not creds_path_or_json:
                 logger.info("GOOGLE_APPLICATION_CREDENTIALS not set - searching Secret Manager...")
+                # Try primary secret name
                 creds_path_or_json = get_secret("google-drive-credentials")
                 
+                # Try fallback secret name if first one failed
+                if not creds_path_or_json:
+                    logger.info("Trying fallback secret name 'rfp-drive-credentials'...")
+                    creds_path_or_json = get_secret("rfp-drive-credentials")
+                
             if not creds_path_or_json:
-                logger.info("Credentials not found in Secret Manager - Google Drive integration disabled")
+                logger.error("Drive credentials not found in environment or Secret Manager - Google Drive integration disabled")
+                self.error_message = "Credentials not found in Secret Manager"
                 return
             
             # Check if it's a JSON string or file path
@@ -78,9 +85,10 @@ class GoogleDriveClient:
                 self._discover_folders()
                 
         except Exception as e:
-            logger.warning(f"Google Drive client not available: {e}")
+            logger.error(f"Critical error initializing Google Drive client: {e}")
             self.service = None
             self.service_account_email = None
+            self.error_message = str(e)
 
     def get_config_status(self):
         """Returns the current configuration status for debugging."""

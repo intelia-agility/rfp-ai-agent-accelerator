@@ -153,17 +153,13 @@ async def draft_response(
                 "filename": drive_response.get('name')
             }
         else:
-            # Fallback if drive upload fails (or not configured), but user asked to write to drive.
-            # We return a JSON indicating failure to upload but offering download if we want?
-            # Or just return the file as before? The user explicitly wants to write to drive.
-            # Let's try to return JSON with an error or fallback message, OR just return the file as download if drive fails.
-            # But the frontend needs to handle one or the other.
-            # Let's standardise on JSON to avoid frontend complexity of handling mixed types.
+            # Fallback if drive upload fails
+            error_msg = getattr(drive_client, 'error_message', 'Drive upload failed or not configured')
             return {
-                "message": "Draft generated but Google Drive upload failed or is not configured.",
+                "message": f"Draft generated but Google Drive upload failed: {error_msg}",
                 "drive_url": None,
                 "filename": output_filename,
-                "error": "Drive upload failed"
+                "error": error_msg
             }
 
     except HTTPException as he:
