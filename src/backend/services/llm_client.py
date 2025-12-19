@@ -30,7 +30,7 @@ class LLMClient:
                 HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
                 HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
             }
-            self.model = GenerativeModel("gemini-1.5-flash")
+            self.model = GenerativeModel("gemini-2.5-flash")
             logger.info("LLM Client initialized successfully")
         except Exception as e:
             logger.error(f"Error initializing LLM client: {e}")
