@@ -300,48 +300,63 @@ export default function Home() {
               ) : (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                   {/* Top Score Cards */}
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="rounded-2xl bg-slate-50 p-6 dark:bg-white/5">
-                      <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Recommendation</p>
-                      <p className={`mt-2 text-3xl font-bold ${result.recommendation === "Pursue" ? "text-green-500" : "text-red-500"}`}>
-                        {result.recommendation}
+                  {result.error ? (
+                    <div className="rounded-xl border border-red-100 bg-red-50 p-4 dark:border-red-900/30 dark:bg-red-900/20">
+                      <h3 className="mb-1 text-sm font-semibold text-red-900 dark:text-red-100">AI Analysis Error</h3>
+                      <p className="text-sm leading-relaxed text-red-800 dark:text-red-200">
+                        {result.error}
                       </p>
                     </div>
-                    <div className="rounded-2xl bg-slate-50 p-6 dark:bg-white/5">
-                      <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Score</p>
-                      <div className="mt-2 flex items-baseline gap-1">
-                        <span className="text-3xl font-bold text-slate-900 dark:text-white">{result.score}</span>
-                        <span className="text-sm text-slate-500">/100</span>
+                  ) : (
+                    <>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="rounded-2xl bg-slate-50 p-6 dark:bg-white/5">
+                          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Recommendation</p>
+                          <p className={`mt-2 text-3xl font-bold ${result.recommendation === "Pursue" ? "text-green-500" : "text-red-500"}`}>
+                            {result.recommendation}
+                          </p>
+                        </div>
+                        <div className="rounded-2xl bg-slate-50 p-6 dark:bg-white/5">
+                          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Score</p>
+                          <div className="mt-2 flex items-baseline gap-1">
+                            <span className="text-3xl font-bold text-slate-900 dark:text-white">{result.score}</span>
+                            <span className="text-sm text-slate-500">/100</span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
+                    </>
+                  )}
 
                   {/* Criteria Progress Bars */}
-                  <div className="space-y-2">
-                    <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Criteria</h3>
-                    {Object.entries(result.criteria_scores).map(([key, score]: [string, any]) => (
-                      <div key={key} className="group">
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="capitalize font-medium text-slate-700 dark:text-slate-200">{key}</span>
-                          <span className="font-bold text-slate-900 dark:text-white">{score}%</span>
+                  {result.criteria_scores && (
+                    <div className="space-y-2">
+                      <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Criteria</h3>
+                      {Object.entries(result.criteria_scores).map(([key, score]: [string, any]) => (
+                        <div key={key} className="group">
+                          <div className="flex justify-between text-xs mb-1">
+                            <span className="capitalize font-medium text-slate-700 dark:text-slate-200">{key}</span>
+                            <span className="font-bold text-slate-900 dark:text-white">{score}%</span>
+                          </div>
+                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                            <div
+                              className="h-full bg-blue-600"
+                              style={{ width: `${score}%` }}
+                            />
+                          </div>
                         </div>
-                        <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                          <div
-                            className="h-full bg-blue-600"
-                            style={{ width: `${score}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Reasoning */}
-                  <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 dark:border-blue-900/30 dark:bg-blue-900/20">
-                    <h3 className="mb-1 text-sm font-semibold text-blue-900 dark:text-blue-100">Analysis</h3>
-                    <p className="text-sm leading-relaxed text-blue-800 dark:text-blue-200">
-                      {result.reasoning}
-                    </p>
-                  </div>
+                  {result.reasoning && (
+                    <div className="rounded-xl border border-blue-100 bg-blue-50 p-4 dark:border-blue-900/30 dark:bg-blue-900/20">
+                      <h3 className="mb-1 text-sm font-semibold text-blue-900 dark:text-blue-100">Analysis</h3>
+                      <p className="text-sm leading-relaxed text-blue-800 dark:text-blue-200">
+                        {result.reasoning}
+                      </p>
+                    </div>
+                  )}
 
                   {/* Action Buttons */}
                   <div className="flex flex-col gap-3 pt-2">
