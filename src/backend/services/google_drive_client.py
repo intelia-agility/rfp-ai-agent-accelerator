@@ -382,8 +382,11 @@ class GoogleDriveClient:
         Upload a file to Google Drive RFP Output folder.
         Returns the file ID if successful, None otherwise.
         """
+        self.error_message = None
         if not self.service:
-            logger.warning("Google Drive service not initialized")
+            msg = "Google Drive service not initialized - check credentials"
+            logger.warning(msg)
+            self.error_message = msg
             return None
         
         # Use output folder by default
@@ -391,7 +394,9 @@ class GoogleDriveClient:
             folder_id = self.output_folder_id
             
         if not folder_id:
-            logger.error("No output folder ID available for upload")
+            msg = "No output folder ID available (RFP Output folder not found or could not be created)"
+            logger.error(msg)
+            self.error_message = msg
             return None
         
         if not filename:
@@ -399,6 +404,7 @@ class GoogleDriveClient:
         
         try:
             if not GOOGLE_DRIVE_AVAILABLE:
+                self.error_message = "Google Drive libraries not available"
                 return None
                 
             from googleapiclient.http import MediaFileUpload
@@ -430,8 +436,7 @@ class GoogleDriveClient:
                 supportsAllDrives=True
             ).execute()
             
-            logger.info(f"File uploaded successfully to '{self.output_folder_name}' folder: {file.get('name')} (ID: {file.get('id')})")
-            logger.info(f"View file at: {file.get('webViewLink')}")
+            logger.info(f"File uploaded successfully to output folder: {file.get('name')} (ID: {file.get('id')})")
             return {
                 'id': file.get('id'),
                 'url': file.get('webViewLink'),
@@ -440,11 +445,12 @@ class GoogleDriveClient:
             
         except Exception as e:
             error_msg = str(e)
+            self.error_message = error_msg
             if "storageQuotaExceeded" in error_msg:
-                msg = "Upload Failed: Service Account storage quota exceeded. Please move the 'RFP Accelerator Artefacts' folder to a Google Shared Drive (Team Drive) to enable uploads."
+                msg = "Upload Failed: Service Account storage quota exceeded. Please move the folder to a Shared Drive."
                 logger.error(msg)
-                raise Exception(msg)
+                self.error_message = msg
             
             logger.error(f"Error uploading file to Google Drive: {e}")
-            raise e
+            return None
 
