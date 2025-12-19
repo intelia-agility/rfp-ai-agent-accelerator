@@ -70,21 +70,48 @@ def debug_drive():
         return drive_client.get_config_status()
     return {"status": "Drive client not initialized", "available": DRIVE_AVAILABLE}
 
+def extract_text_from_file(file_path: str) -> str:
+    """Extract text from .docx, .pdf or .txt files"""
+    if file_path.endswith('.docx'):
+        from docx import Document
+        doc = Document(file_path)
+        return "\n".join([para.text for para in doc.paragraphs])
+    elif file_path.endswith('.pdf'):
+        from pypdf import PdfReader
+        reader = PdfReader(file_path)
+        text = ""
+        for page in reader.pages:
+            text += page.extract_text() + "\n"
+        return text
+    else:
+        # Assume text file
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                return f.read()
+        except:
+            with open(file_path, "r", encoding="latin-1") as f:
+                return f.read()
+
 @app.post("/assess")
 async def assess_rfp(file: UploadFile = File(...)):
     try:
         temp_path = f"temp_{file.filename}"
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-        
-        with open(temp_path, "rb") as f:
-            content = str(f.read()) 
             
-        result = analyzer.analyze_rfp(content)
+        rfp_content = extract_text_from_file(temp_path)
+        
+        if not rfp_content or len(rfp_content.strip()) < 10:
+             # Fallback if extraction failed
+             with open(temp_path, "rb") as f:
+                 rfp_content = str(f.read()[:5000])
+
+        result = analyzer.analyze_rfp(rfp_content)
         
         os.remove(temp_path)
         return result
     except Exception as e:
+        print(f"Error in assess_rfp: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 class DraftRequest(BaseModel):
@@ -121,11 +148,11 @@ async def draft_response(
         with open(input_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        # 2. Mock extracting text
-        rfp_content_preview = "Sample RFP content..."
+        # 2. Extract real text from document
+        rfp_content = extract_text_from_file(input_path)
         
-        # 3. Generate Draft Content
-        draft_text = drafter.draft_response(rfp_content_preview, company_url=company_url)
+        # 3. Generate Draft Content using real RFP context
+        draft_text = drafter.draft_response(rfp_content, company_url=company_url)
         
         # 4. Modify Document (fill placeholders)
         final_doc_path = drafter.generate_draft_document(draft_text, input_path, output_path, company_url=company_url)
