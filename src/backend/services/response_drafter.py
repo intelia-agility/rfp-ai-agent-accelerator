@@ -15,30 +15,6 @@ class ResponseDrafter:
         self.drive_client = GoogleDriveClient()
 
     def draft_response(self, rfp_text: str, company_url: str = "") -> str:
-        # RETURN STATIC DRAFT FOR DEMO
-        return """
-        # Executive Summary & Proposal Response
-        
-        Our approach to this RFP is centered on delivering a scalable, secure, and innovative solution that aligns perfectly with your strategic objectives. 
-        
-        ### 1. Proposed Solution
-        Leveraging our proprietary digital acceleration framework, we propose an integrated system that automates the core workflows identified in your RFP. Our solution utilizes state-of-the-art cloud architecture to ensure 99.9% uptime and seamless integration with your existing legacy systems.
-        
-        ### 2. Implementation Methodology
-        We employ an Agile-based implementation strategy, divided into four key phases:
-        - **Phase 1: Discovery & Architecture (Weeks 1-4):** Deep-dive into technical requirements and system design.
-        - **Phase 2: Development & Sprint execution (Weeks 5-16):** Iterative development with continuous feedback loops.
-        - **Phase 3: UAT & Security Hardening (Weeks 17-20):** Thorough testing and compliance verification.
-        - **Phase 4: Go-Live & Support (Week 21 onwards):** Managed transition and post-launch monitoring.
-        
-        ### 3. Case Studies & Proven Track Record
-        We have successfully implemented this exact architecture for two global financial institutions, resulting in a 40% reduction in operational overhead and a significant increase in data throughput.
-        
-        ### 4. Conclusion
-        We are confident that our unique combination of industry expertise and technical excellence makes us the ideal partner for this transformation journey.
-        """
-        
-        # Original AI logic preserved below
         """
         Draft a response using company website and source documents from Google Drive.
         """
@@ -82,26 +58,15 @@ class ResponseDrafter:
         1. Write a response that directly addresses the requirements.
         2. Use information from the source documents to provide specific, accurate details.
         3. Use a professional, confident tone.
-        4. Highlight the company's strengths based on the knowledge base and source documents.
-        5. If specific details are missing, use descriptive placeholders like [Insert specific metric].
-        6. Ensure the response is comprehensive and well-structured.
+        4. Focus on value propositions and competitive advantages.
+        5. Format as a clean, structured professional response.
 
-        RESPONSE:
+        DRAFT RESPONSE:
         """
-        
-        # Call LLM to generate response
         try:
-            response = self.llm.generate_content(prompt)
-            return response
+            return self.llm.generate_content(prompt)
         except Exception as e:
-            print(f"Error generating LLM response: {e}")
-            # Fallback response
-            if not source_documents and not company_url:
-                return "Please provide a company URL or ensure source documents are available in Google Drive to generate a tailored response."
-                
-            return f"Based on {len(source_documents)} source documents from Google Drive and website content, here is a draft response:\n\n" \
-                   f"Our company is uniquely positioned to deliver this project. We have extensive experience and capabilities " \
-                   f"as documented in our source materials. We understand your requirements and propose a comprehensive solution..."
+            return f"Error drafting response: {str(e)}"
 
     def generate_draft_document(self, content: str, input_path: str, output_path: str, company_url: str = ""):
         """
