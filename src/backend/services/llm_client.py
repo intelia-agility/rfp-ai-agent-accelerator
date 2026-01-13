@@ -19,8 +19,8 @@ class LLMClient:
                 logger.warning("GCP_PROJECT_ID not set - LLM client may not work properly")
                 # Try to initialize anyway, it might work with default credentials
             
-            # Initialize Vertex AI
-            vertexai.init(project=project_id, location=location)
+            # Initialize Vertex AI - switching to us-central1 for better model availability
+            vertexai.init(project=project_id, location="us-central1")
             
             # Initialize the model
             from vertexai.generative_models import HarmCategory, HarmBlockThreshold
