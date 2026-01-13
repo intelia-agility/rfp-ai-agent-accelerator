@@ -30,8 +30,8 @@ class LLMClient:
                 HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
                 HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_ONLY_HIGH,
             }
-            self.model = GenerativeModel("gemini-1.5-flash")
-            logger.info("LLM Client initialized successfully")
+            self.model = GenerativeModel("gemini-1.5-flash-002")
+            logger.info("LLM Client initialized with gemini-1.5-flash-002")
         except Exception as e:
             logger.error(f"Error initializing LLM client: {e}")
             # Don't raise - allow the app to start even if LLM isn't available
